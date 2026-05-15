@@ -1,0 +1,171 @@
+---
+title: "Section 3 Exploratory Data Analysis Exercise"
+author: "Samyam Bista"
+format: docx
+editor: visual
+---
+
+# **Exploratory Data Analysis**
+
+**Section: 02**
+
+**Name: Samyam Bista**
+
+## References
+
+To learn more about Quarto see <https://quarto.org>
+
+EDA Publication from “The Journal of Open Source Software”
+
+Link:
+
+![](JOSS%20Image%20for%20insertion.png){fig-align="left"}
+
+<https://joss.theoj.org/papers/10.21105/joss.01509>
+
+## Install Packages- comment out when complete
+
+```{r}
+#install.packages(c("rlang", "vctrs", "pillar", "tibble", "dplyr"))
+```
+
+## Install Libraries
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(reshape2)
+```
+
+## Set Working Directory and load file into that location
+
+```{r}
+setwd("/Users/samyambista/Desktop/DATA 332")
+getwd()
+
+```
+
+## Load data set
+
+```{r}
+Section3Data<-read_excel("Data332_Section_3_Data.xlsx")
+
+glimpse(Section3Data)
+# Use the Global environment to view Section3Data
+```
+
+# **Univariate Analyses**
+
+## Summary Statistics
+
+```{r}
+summary(Section3Data$Revenue)
+```
+
+## Distribution Analysis
+
+### Histogram
+
+```{r}
+ggplot(Section3Data, aes(x = Revenue)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  labs(title = "Histogram of Revenue",
+       x = "Revenue",
+       y = "Count") +
+  theme_minimal()
+```
+
+### Density Plot
+
+```{r}
+ggplot(Section3Data, aes(x = Revenue)) +
+  geom_density(fill = "darkgreen", alpha = 0.6) +
+  labs(title = "Density Plot of Revenue",
+       x = "Revenue",
+       y = "Density") +
+  theme_minimal()
+
+```
+
+## Outlier Identification
+
+Box Plots
+
+```{r}
+ggplot(Section3Data, aes(y = "", x = Revenue)) +
+  geom_boxplot(fill = "orange", alpha = 0.7) +
+  labs(title = "Boxplot of Revenue",
+       x = "",
+       y = "Revenue") +
+  theme_minimal()
+```
+
+# **Bivariate Analyses**
+
+## Correlations
+
+```{r}
+Section3Data %>%
+  select(Revenue, Quantity, Costs, Profit) %>%
+  cor(use = "complete.obs")
+```
+
+```{r}
+Revenue_v_Profit <- ggplot(Section3Data, aes(x = Revenue, y = Profit)) +
+  geom_point(color = "steelblue", alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+  labs(
+    title = "Revenue vs Profit",
+    x = "Revenue",
+    y = "Profit"
+  ) +
+  theme_minimal()
+print(Revenue_v_Profit)
+```
+
+```{r}
+# Regression Model
+model <- lm(Profit ~ Revenue, data = Section3Data)
+summary(model)
+print(model)
+```
+
+## Covariance
+
+data standardization is required to compare Magnitude of Covariance
+
+```{r}
+cov(Section3Data[, c("Quantity", "Revenue", "Costs", "Profit")], 
+    use = "complete.obs")
+
+```
+
+```{r}
+cov_mat <- cov(Section3Data[, c("Quantity", "Revenue", "Costs", "Profit")]) 
+cov_df <- melt(cov_mat) 
+
+ggplot(cov_df, aes(Var1, Var2, fill = value)) + geom_tile() + 
+  scale_fill_gradient2(low = "#3498DB", high = "#E74C3C", mid = "white", midpoint = 0) + 
+  theme_minimal(base_size = 14) + 
+  labs(title = "Covariance Matrix Heatmap", fill = "Covariance")
+
+```
+
+## Ellipse Plot
+
+```{r}
+ggplot(Section3Data, aes(Costs, Profit)) + 
+  stat_ellipse(type = "norm", color = "#2980B9", linewidth = 1) + 
+  geom_point(alpha = 0.5) + 
+  theme_minimal(base_size = 14) + 
+  labs(title = "Covariance Ellipse Plot")
+
+```
+
+```{r}
+ 
+# A narrow, tilted ellipse → strong covariance.
+# A wide, circular ellipse → weak covariance.
+
+```

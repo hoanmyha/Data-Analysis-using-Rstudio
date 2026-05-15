@@ -1,0 +1,208 @@
+---
+title: "Section 2: Import, Visualize, and Communicate Assignment"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+## From the Student Locations Google Drive, load files to your Working Directory:
+
+Data332_Section_2_Data.xlsx and an image ggplot_layers.png
+
+<https://drive.google.com/drive/folders/1g6OOSGXJnF3Q97MBD9BT1M4JmPLfJ6rd>
+
+## References
+
+ggplot(): <https://rstudio.github.io/cheatsheets/html/data-visualization.html>
+
+## ![Figure 1: GGPLOT Layers](ggplot_layers.png)
+
+Cheat Sheet : <https://rstudio.github.io/cheatsheets/data-visualization.pdf>
+
+Quarto enables you to weave together content and executable code into a finished document.
+
+To learn more about Quarto see <https://quarto.org.>
+
+## Libraries Needed
+
+```{r}
+library(rvest)
+library(tidyverse)
+```
+
+```{r}
+library(tibble)
+library(purrr)
+library(stringr)
+library(readr)
+library(readxl)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+```
+
+## Read in the data to your session
+
+```{r}
+section_2_Data<- read_xlsx("Data332_Section_2_Data.xlsx")
+```
+
+## Check the datatypes of trending_table
+
+```{r}
+table_datatypes <- tibble( column = names(section_2_Data),
+type = map_chr(section_2_Data,
+~ paste(class(.x), collapse = ", ")) )
+print(table_datatypes)
+```
+
+## Line Charts
+
+Produce a line chart of Revenue by Order Date
+
+```{r}
+Line_Chart <- ggplot(section_2_Data, aes(x = Order_Date, y = Revenue)) +
+geom_line(color = "steelblue", linewidth = 1) +
+scale_x_date(date_breaks = "1 month") +
+labs( title = "Revenue Over Time", x = "Order Date", y = "Revenue" ) +
+theme_minimal()+
+theme( axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1) )
+print(Line_Chart)
+```
+
+```{r}
+ggsave("Line_Chart.png", width = 20, height = 8, dpi = 300)
+```
+
+## Horizontal Bar Charts
+
+```{r}
+# Summarize quantity by product
+product_qty <- section_2_Data %>%
+  group_by(Product) %>%
+  summarise(Total_Quantity = sum(Quantity, na.rm = TRUE)) %>%
+  arrange(Total_Quantity)
+
+# Horizontal bar chart
+bar_chart <- ggplot(product_qty, aes(x = Total_Quantity,
+                                     y = reorder(Product, Total_Quantity))) +
+  geom_col(fill = "lightblue") +
+  labs( title = "Total Quantity Sold by Product",
+        x = "Total Quantity", y = "Product" ) +
+  theme_minimal(base_size = 10) + # smaller overall font
+  theme( axis.text.y = element_text(size = 8), # smaller y‑axis labels
+         plot.title = element_text(size = 12) # adjust title size
+         )+
+         coord_cartesian(clip = "off")
+  print(bar_chart)
+```
+
+```{r}
+ggsave("bar_chart.png", width = 8, height = 10, dpi = 300)
+```
+
+## Histogram of Profit
+
+```{r}
+Profit_histogram <- ggplot(section_2_Data, aes(x = Profit)) +
+geom_histogram(
+bins = 30, # adjust bin count as needed
+fill = "darkgreen",
+color = "white",
+alpha = 0.8
+) +
+labs(
+title = "Distribution of Profit",
+x = "Profit",
+y = "Frequency"
+) +
+theme_minimal()
+print(Profit_histogram)
+```
+
+```{r}
+ggsave("Profit_histogram.png", width = 8, height = 10, dpi = 300)
+```
+
+## Use of Categorical Variable in a Bar Chart
+
+```{r}
+# Summarize count of orders by survey response
+survey_counts <- section_2_Data %>%
+group_by(Order_Survey_Response) %>%
+summarise(Count_Orders = n()) %>%
+arrange(desc(Count_Orders))
+# Vertical bar chart
+Order_by_survey_response <- ggplot(survey_counts,
+aes(x = Order_Survey_Response, y = Count_Orders)) +
+geom_col(fill = "orange") +
+geom_text( aes(label = Count_Orders),
+vjust = -0.5, # moves labels above the bars
+)+
+  labs(
+    title = "Count of Orders by Survey Response",
+x = "Survey Response",
+y = "Number of Orders"
+) +
+theme_minimal() +
+theme(
+axis.text.x = element_text(angle = 45, hjust = 1) # rotate labels
+)
+print(Order_by_survey_response)
+```
+
+```{r}
+ggsave("Order_by_survey_response.png", width = 8, height = 10, dpi = 300)
+```
+
+## Box Plots
+
+```{r}
+box_plot_Cost <- ggplot(section_2_Data, aes(x = Cost_per_Unit)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(
+title = "Boxplot of Cost per Unit",
+x = "Cost per Unit",
+y = ""
+) +
+theme_minimal() +
+theme(
+axis.text.y = element_blank(), # remove y‑axis labels
+axis.ticks.y = element_blank(), # remove y‑axis ticks
+axis.title.y = element_blank() # remove y‑axis title
+)
+print(box_plot_Cost)
+```
+
+```{r}
+ggsave("box_plot_Cost.png", width = 8, height = 10, dpi = 300)
+```
+
+## Violin Graph of Profit by Order Survey Response
+
+```{r}
+library(ggplot2)
+Violin_survey <- ggplot(section_2_Data, aes(x = Order_Survey_Response,y = Profit)) +                      geom_violin(fill = "steelblue", color = "black", alpha = 0.7) +
+labs(
+title = "Profit Distribution by Survey Response",
+x = "Survey Response",
+y = "Profit"
+) +
+theme_minimal() +
+theme(
+axis.text.x = element_text(angle = 45, hjust = 1) # rotate labels
+)
+print(Violin_survey)
+```
+
+```{r}
+ggsave("Violin_survey.png", width = 8, height = 10, dpi = 300)
+```
+
+When you click the **Render** button a document will be generated that includes both content
+
+and the output of embedded code.
+
+You can embed code like this: The echo: false option disables the printing of code (only
+
+output is displayed).

@@ -1,0 +1,796 @@
+---
+title: "Data_332_Section_3_Assignment"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+## 
+
+## Data 332 Section 3: Exploratory Data Analysis
+
+Section \# [02]{.underline}
+
+Name: My Ha
+
+### References
+
+To learn more about Quarto see <https://quarto.org>
+
+EDA Publication from “The Journal of Open Source Software”
+
+![Figure 1: Exploratory Data Analysis in R](Image%20to%20include.png){fig-align="center"}
+
+<https://joss.theoj.org/papers/10.21105/joss.01509>
+
+### Packages
+
+Packages are loaded once than commented off to avoid the errors created when loading more than once
+
+```{r}
+#install.packages(c("rlang", "vctrs", "pillar", "tibble", "dplyr"))
+#install.packages("reshape2")
+
+# view installed packages using the code below:
+
+#installed.packages()
+
+
+```
+
+### Libraries
+
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(reshape2)
+```
+
+```{r}
+library(tibble)
+library(purrr)
+```
+
+### Set your Working Directory
+
+```{r}
+getwd()
+
+```
+
+### Load Data Dictionary Image and Data from your Working Directory
+
+The Data dictionary for this assignment shows the datatypes for each column of the data. Knowing the datatype is critical to choosing how to explore each column because some techniques require certain datatypes.
+
+![Figure 2: Data Dictionary](data dictionary image.png){fig-align="center"}
+
+```{r}
+Data3_EDA_Data<-read_xlsx("data for the Assignment.xlsx", sheet = "Exporatory Data Analysis in R")
+print(Data3_EDA_Data)
+```
+
+### Verify the datatypes in the data dictionary to those in Data3_EDA_Data
+
+```{r}
+table_datatypes <- tibble( column = names(Data3_EDA_Data),
+type = map_chr(Data3_EDA_Data,
+~ paste(class(.x), collapse = ", ")) )
+print(table_datatypes)
+```
+
+## Perform an Exploratory Data Analysis for the selected variables within Data3_EDA_Data
+
+### Univariate Analysis of Character datatypes
+
+```{r}
+# Count
+Order_Number_count <- Data3_EDA_Data %>%
+count(Order_Number, sort = TRUE)
+```
+
+```{r}
+# Bar Chart
+Order_Number_Histogram <- ggplot(Data3_EDA_Data, aes(x = Order_Number)) +
+geom_bar(fill = "steelblue") +
+labs(title = "Count of Order_Numbers",
+x = "Region",
+y = "Count") +
+theme_minimal() +
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### Repeat these steps below for each of the other character datatype columns in the Data3_EDA_Data. Inserting Code Chucks and Comments to explain the analysis and outcome
+
+```{r}
+# Count
+Product_count <- Data3_EDA_Data %>%
+count(Product, sort = TRUE)
+
+print(Product_count)
+
+# Bar Chart
+Product_Bar <- ggplot(Data3_EDA_Data, aes(x = Product)) +
+geom_bar(fill = "steelblue") +
+labs(title = "Count of Products",
+x = "Product",
+y = "Count") +
+theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(Product_Bar)
+```
+
+> **Analysis and Outcome**
+>
+> This analysis helps us see which items are "best-sellers" and which ones are less popular.
+>
+> Group the data by 'Product' and count them, 'sort = TRUE' puts the most popular items at the top of the list. Then we create a visual bar chart. This makes it easy to compare the popularity of all products at once.
+>
+> The chart is very "busy," which shows we have a huge variety of different products. There are several tall "peaks" in the bars. These represent our top-performing products that are ordered much more often than others. Most products seem to have a steady count of around 40 or more transactions, but the significant difference in bar heights shows that customer preference is not spread evenly across all items
+
+```{r}
+Customer_Category_count <- Data3_EDA_Data %>%
+count(Customer_Category, sort = TRUE)
+
+print(Customer_Category_count)
+
+Customer_Category_Bar <- ggplot(Data3_EDA_Data, aes(x = Customer_Category)) +
+geom_bar(fill = "steelblue") +
+labs(title = "Customer Category Count",
+x = "Customer Category",
+y = "Count") +
+theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(Customer_Category_Bar)
+```
+
+**Analysis and Outcome**
+
+The `count()` function was used to tally the total number of entries for every group in the dataset, providing a clear breakdown of where the customers are coming from. To make this data easier to digest, a bar chart was built using `ggplot()` and `geom_bar()`, which puts the categories side-by-side for a quick comparison.
+
+Looking at the chart, the **Creative & Technology** sector is the clear front-runner, showing the highest level of activity . In contrast, the **Healthcare & Safety and Education** groups have the lowest counts in the dataset . While the business has a healthy mix of customers across all seven categories, it is most heavily utilized by tech-focused clients
+
+```{r}
+Survey_count <- Data3_EDA_Data %>%
+count(Order_Survey_Response, sort = TRUE)
+
+print(Survey_count)
+
+Survey_Bar <- ggplot(Data3_EDA_Data, aes(x = Order_Survey_Response)) +
+geom_bar(fill = "steelblue") +
+labs(title = "Survey Response Count",
+x = "Survey Response",
+y = "Count") +
+theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(Survey_Bar)
+```
+
+**Analysis and Outcome**
+
+The count() function was used to calculate the frequency of each feedback type, helping us understand the overall distribution of customer satisfaction . A bar chart was then created using `ggplot()` and `geom_bar()` to provide a clear visual comparison of these responses .
+
+From the chart, it is clear that the **"Neither"** category is by far the most common response, with over 2,000 entries . While it is positive to see that **"Satisfied"** customers outnumber those who are **"Dissatisfied,"** the high volume of neutral responses suggests that most customers don't have a strong opinion either way . This indicates a major opportunity to engage with the "Neither" group to move them toward the "Satisfied" column.
+
+```{r}
+Customer_ID_count <- Data3_EDA_Data %>%
+count(Customer_ID, sort = TRUE)
+
+print(Customer_ID_count)
+
+Customer_ID_Bar <- ggplot(Data3_EDA_Data, aes(x = Customer_ID)) +
+geom_bar(fill = "steelblue") +
+labs(title = "Most frequent customers",
+x = "Customer ID",
+y = "Count") +
+theme_minimal() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(Customer_ID_Bar)
+```
+
+**Analysis and Outcome**
+
+The `count()` function was used to calculate how many times each specific Customer ID appears in the records. This is a great way to measure loyalty, as a higher count for an ID means that customer has placed more orders. Much like the Product analysis , a bar chart was then created using `ggplot()` and `geom_bar()` to provide a bird's-eye view of your customer activity.
+
+The outcome of this analysis shows the distribution of your customer base. Because there are so many unique IDs (similar to the high variety seen in the Product chart ), the bars represent the transaction volume for each individual. This helps us quickly spot "outliers", those specific customers who have significantly higher counts than the rest, allowing you to identify your most valuable clients.
+
+### Univariate Analysis of Numeric datatypes
+
+### Histogram
+
+```{r}
+Histogram_Quantity <- ggplot(Data3_EDA_Data, aes(x = Quantity)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Quantity Distribution")
+ggsave("Histogram_Quantity.png")
+```
+
+```{r}
+print(Histogram_Quantity)
+
+```
+
+### Density Plot
+
+```{r}
+Quantity_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Quantity)) +
+geom_density(fill = "lightblue") +
+labs(title = "Quantity Density Plot")
+ggsave("Quantity_DensityPlot.png")
+```
+
+```{r}
+print(Quantity_DensityPlot)
+
+```
+
+### Box Plot
+
+```{r}
+Quantity_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Quantity)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(
+title = "Boxplot of Quantity",
+x = "Quantity",
+y = ""
+) +
+theme_minimal() +
+theme(
+axis.text.y = element_blank(), # remove y‑axis labels
+axis.ticks.y = element_blank(), # remove y‑axis ticks
+axis.title.y = element_blank() # remove y‑axis title
+)
+ggsave("Quantity_BoxPlot.png")
+
+```
+
+```{r}
+print(Quantity_BoxPlot)
+
+```
+
+### Outlier Detection
+
+```{r}
+outliers_Quantity <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Quantity, 0.25, na.rm = TRUE),
+q3 = quantile(Quantity, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Quantity < lower | Quantity > upper) %>%
+select(Quantity)
+print(outliers_Quantity)
+```
+
+### Repeat these steps below for each of the other numeric data t type columns in the Data3_EDA_Data. Inserting Code Chucks and Comments to explain the analysis and outcome
+
+## Price_Per_Unit
+
+```{r}
+# Histogram
+Histogram_Price <- ggplot(Data3_EDA_Data, aes(x = Price_Per_Unit)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Price Per Unit Distribution")
+
+print(Histogram_Price)
+```
+
+```{r}
+# Density Plot
+Price_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Price_Per_Unit)) +
+geom_density(fill = "lightblue") +
+labs(title = "Price Per Unit Density Plot")
+
+print(Price_DensityPlot)
+```
+
+```{r}
+# Box Plot
+Price_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Price_Per_Unit)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(title = "Boxplot of Price Per Unit")
+
+print(Price_BoxPlot)
+```
+
+```{r}
+# Outlier Detection
+outliers_Price <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Price_Per_Unit, 0.25, na.rm = TRUE),
+q3 = quantile(Price_Per_Unit, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Price_Per_Unit < lower | Price_Per_Unit > upper) %>%
+select(Price_Per_Unit)
+
+print(outliers_Price)
+```
+
+**Analysis and Outcome**
+
+The histogram, density plot, and boxplot together help explain how the Price_Per_Unit values are distributed in the dataset.
+
+The histogram shows that most product prices fall within a moderate range, with the majority of observations roughly between 100 and 250, while relatively few products appear at very low or very high price levels.
+
+The density plot supports this observation by highlighting where the prices are most concentrated and showing a slightly uneven distribution across different price ranges.
+
+The boxplot provides a clear summary of the data by displaying the median price and the interquartile range, indicating that most prices are grouped within a central range with limited spread. In addition, the outlier detection results show that no values fall outside the expected bounds based on the interquartile range (IQR) rule, meaning there are no unusually high or low product prices in the dataset.
+
+Overall, these visualizations suggest that product prices are fairly well distributed, with most observations concentrated within a typical pricing range.
+
+## Cost_per_Unit
+
+```{r}
+Histogram_Cost <- ggplot(Data3_EDA_Data, aes(x = Cost_per_Unit)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Cost Per Unit Distribution")
+
+print(Histogram_Cost)
+```
+
+```{r}
+
+Cost_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Cost_per_Unit)) +
+geom_density(fill = "lightblue") +
+labs(title = "Cost Per Unit Density Plot")
+
+print(Cost_DensityPlot)
+```
+
+```{r}
+Cost_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Cost_per_Unit)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(title = "Boxplot of Cost Per Unit")
+
+print(Cost_BoxPlot)
+```
+
+```{r}
+outliers_Cost <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Cost_per_Unit, 0.25, na.rm = TRUE),
+q3 = quantile(Cost_per_Unit, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Cost_per_Unit < lower | Cost_per_Unit > upper) %>%
+select(Cost_per_Unit)
+
+print(outliers_Cost)
+```
+
+**Analysis and Outcome**
+
+The histogram, density plot, and boxplot collectively illustrate the distribution of the Cost_per_Unit variable in the dataset.
+
+The histogram indicates that most product costs fall within a moderate range, approximately between 30 and 80 units, with only a small number of observations at very low or very high cost levels.
+
+The density plot supports this observation by showing where the cost values are most concentrated, suggesting that many products have similar production or acquisition costs.
+
+The boxplot further summarizes the data by displaying the median and the interquartile range, indicating that most cost values are grouped within a consistent central range. Additionally, the outlier detection results show that no cost values fall outside the expected limits based on the interquartile range (IQR) rule, meaning there are no unusually high or low cost observations.
+
+Overall, the analysis indicates that product costs are fairly stable and consistently distributed across the dataset.
+
+## Revenue
+
+```{r}
+Histogram_Revenue <- ggplot(Data3_EDA_Data, aes(x = Revenue)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Revenue Distribution")
+
+print(Histogram_Revenue)
+```
+
+```{r}
+Revenue_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Revenue)) +
+geom_density(fill = "lightblue") +
+labs(title = "Revenue Density Plot")
+
+print(Revenue_DensityPlot)
+```
+
+```{r}
+Revenue_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Revenue)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(title = "Boxplot of Revenue")
+
+print(Revenue_BoxPlot)
+```
+
+```{r}
+outliers_Revenue <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Revenue, 0.25, na.rm = TRUE),
+q3 = quantile(Revenue, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Revenue < lower | Revenue > upper) %>%
+select(Revenue)
+
+print(outliers_Revenue)
+```
+
+**Analysis and Outcome**
+
+The histogram, density plot, and boxplot together help explain the distribution of the Revenue variable in the dataset.
+
+The histogram shows that most revenue values occur at the lower end, with the number gradually decreasing as revenue increases. This pattern forms a right-skewed distribution, where many orders generate relatively small amounts of revenue, while only a few produce very large amounts.
+
+The density plot reinforces this pattern by showing a high concentration of observations in the lower revenue range and a long tail extending toward higher values.
+
+The boxplot also reflects this skewness by displaying several points above the upper whisker, indicating the presence of high-value revenue outliers. The outlier detection results support this finding, identifying 133 revenue values that fall outside the typical range defined by the interquartile range (IQR). These outliers likely represent unusually large orders or high-value transactions.
+
+Overall, the analysis indicates that although most orders generate moderate revenue, a smaller number of transactions contribute substantially higher revenue amounts.
+
+## Costs
+
+```{r}
+Histogram_Costs <- ggplot(Data3_EDA_Data, aes(x = Costs)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Costs Distribution")
+
+print(Histogram_Costs)
+
+```
+
+```{r}
+Costs_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Costs)) +
+geom_density(fill = "lightblue") +
+labs(title = "Costs Density Plot")
+
+print(Costs_DensityPlot)
+```
+
+```{r}
+Costs_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Costs)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(title = "Boxplot of Costs")
+
+print(Costs_BoxPlot)
+```
+
+```{r}
+outliers_Costs <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Costs, 0.25, na.rm = TRUE),
+q3 = quantile(Costs, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Costs < lower | Costs > upper) %>%
+select(Costs)
+
+print(outliers_Costs)
+```
+
+**Analysis and Outcome**
+
+The histogram, density plot, and boxplot together illustrate the distribution of the Costs variable across orders.
+
+The histogram shows that most cost values fall within the lower to middle range, while fewer observations appear as costs increase. This pattern indicates a right-skewed distribution, where many orders have moderate costs and only a smaller number reach higher cost levels.
+
+The density plot supports this observation by showing a greater concentration of values at lower cost levels and a gradual decline as costs rise.
+
+The boxplot further summarizes the data by presenting the median and interquartile range, indicating that most cost values are grouped within a stable central range. In addition, the outlier detection results show that no values fall outside the expected limits based on the interquartile range (IQR) rule, meaning there are no extreme cost observations in the dataset.
+
+Overall, the analysis suggests that most orders involve moderate operational costs, with relatively few orders having higher cost values.
+
+## Profit
+
+```{r}
+Histogram_Profit <- ggplot(Data3_EDA_Data, aes(x = Profit)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Profit Distribution")
+
+print(Histogram_Profit)
+```
+
+```{r}
+Profit_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Profit)) +
+geom_density(fill = "lightblue") +
+labs(title = "Profit Density Plot")
+
+print(Profit_DensityPlot)
+```
+
+```{r}
+Profit_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Profit)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(title = "Boxplot of Profit")
+
+print(Profit_BoxPlot)
+```
+
+```{r}
+outliers_Profit <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Profit, 0.25, na.rm = TRUE),
+q3 = quantile(Profit, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Profit < lower | Profit > upper) %>%
+select(Profit)
+
+print(outliers_Profit)
+```
+
+### Analysis and Outcome
+
+The histogram and density plot of Profit show a right-skewed distribution, where most orders generate relatively small profits while a smaller number of orders produce much higher profits. The highest concentration of values appears in the lower profit range, and the frequency gradually decreases as profit increases, creating a long tail on the right side. This pattern indicates that very large profits occur less often but are still present in the dataset.
+
+The boxplot further illustrates this trend by showing several points above the upper whisker, suggesting the presence of many high-profit outliers. The outlier detection results support this observation, identifying 198 values that fall outside the expected interquartile range (IQR). These extreme values likely represent unusually profitable orders compared to most transactions.
+
+Overall, the analysis suggests that although most orders generate moderate profits, a smaller number of transactions contribute substantially higher profits to the dataset.
+
+## Customer_Tenure
+
+```{r}
+Histogram_Tenure <- ggplot(Data3_EDA_Data, aes(x = Customer_Tenure)) +
+geom_histogram(fill = "steelblue", bins = 20) +
+labs(title = "Customer Tenure Distribution")
+
+print(Histogram_Tenure)
+```
+
+```{r}
+Tenure_DensityPlot <- ggplot(Data3_EDA_Data, aes(x = Customer_Tenure)) +
+geom_density(fill = "lightblue") +
+labs(title = "Customer Tenure Density Plot")
+
+print(Tenure_DensityPlot)
+```
+
+```{r}
+Tenure_BoxPlot <- ggplot(Data3_EDA_Data, aes(x = Customer_Tenure)) +
+geom_boxplot(fill = "steelblue", color = "black") +
+labs(title = "Boxplot of Customer Tenure")
+
+print(Tenure_BoxPlot)
+```
+
+```{r}
+outliers_Tenure <- Data3_EDA_Data %>%
+mutate(
+q1 = quantile(Customer_Tenure, 0.25, na.rm = TRUE),
+q3 = quantile(Customer_Tenure, 0.75, na.rm = TRUE),
+iqr = q3 - q1,
+lower = q1 - 1.5 * iqr,
+upper = q3 + 1.5 * iqr
+) %>%
+filter(Customer_Tenure < lower | Customer_Tenure > upper) %>%
+select(Customer_Tenure)
+
+print(outliers_Tenure)
+```
+
+### Analysis and Outcome
+
+The histogram and density plot of Customer_Tenure indicate that the distribution is roughly symmetric, with values centered around the middle range. Most customers have a tenure of approximately 10 to 14 units, with the highest concentration near 12, suggesting that many customers have been with the company for a moderate amount of time.
+
+The density plot reinforces this bell-shaped pattern, showing a relatively even spread of tenure values.
+
+The boxplot shows that the median tenure is near the center of the distribution, with most observations falling within the interquartile range. A few lower values appear as outliers on the left side of the boxplot, representing a small number of newer customers relative to the rest of the dataset.
+
+Overall, this analysis suggests that customer tenure is fairly consistent, with most customers having a similar length of relationship with the company.
+
+### Bivariate Analyses on Numeric data types
+
+### Correlation Analysis
+
+```{r}
+numeric_corr <- Data3_EDA_Data %>%
+select(where(is.numeric)) %>%
+cor(use = "pairwise.complete.obs")
+numeric_corr
+```
+
+### Scatter Plots
+
+```{r}
+Quantity_vs_Price_Per_Unit <- ggplot(Data3_EDA_Data, aes(x = Quantity, y = Price_Per_Unit)) +geom_point(alpha = 0.6) +
+geom_smooth(method = "lm", se = FALSE, color = "darkred") +
+labs(title = "Quantity vs Price Per Unit",
+x = "Quantity",
+y = "Price Per Unit") +
+  theme_minimal()
+ggsave("Quantity_vs_Price_Per_Unit.png")
+```
+
+```{r}
+print(Quantity_vs_Price_Per_Unit)
+
+```
+
+### Linear Regression Detail
+
+```{r}
+model_qty_PPU <- lm(Quantity ~ Price_Per_Unit, data = Data3_EDA_Data)
+summary(model_qty_PPU)
+```
+
+### Repeat the Bivariate Analysis Techniques for each of the pairs given below:
+
+Price_Per_Unit \~ Cost_Per_Unit
+
+Revenue \~ Costs
+
+Revenue \~ Profit
+
+### by inserting Code Chucks and Comments to explain the analysis and outcome
+
+## 1) Price_Per_Unit vs Cost_Per_Unit
+
+### Correlation Analysis
+
+```{r}
+numeric_corr["Price_Per_Unit","Cost_per_Unit"]
+```
+
+### Scatter Plots
+
+```{r}
+Price_vs_Cost_per_Unit <- ggplot(Data3_EDA_Data, aes(x = Cost_per_Unit, y = Price_Per_Unit)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred") +
+  labs(
+    title = "Price Per Unit vs Cost Per Unit",
+    x = "Cost Per Unit",
+    y = "Price Per Unit"
+  ) +
+  theme_minimal()
+
+ggsave("Price_vs_Cost_per_Unit.png")
+
+```
+
+```{r}
+print(Price_vs_Cost_per_Unit)
+```
+
+### Linear Regression Detail
+
+```{r}
+model_price_cost <- lm(Price_Per_Unit ~ Cost_per_Unit, data = Data3_EDA_Data)
+summary(model_price_cost)
+```
+
+### Analysis and Outcome
+
+The correlation analysis between **Price_Per_Unit** and **Cost_per_Unit** reveals a correlation coefficient of **0.841**, indicating a strong positive relationship. This suggests that as **Cost_per_Unit** increases, **Price_Per_Unit** also tends to rise. The scatter plot reinforces this pattern, displaying an upward trend where higher costs correspond to higher prices, with the regression line clearly illustrating the positive linear relationship.
+
+The linear regression results provide a statistical confirmation of this relationship. The regression coefficient for **Cost_per_Unit** is **3.183**, meaning that for every one-unit increase in cost, the price per unit increases by approximately 3.18 units. The model’s **R² value of 0.707** indicates that about **70.7%** of the variation in **Price_Per_Unit** is explained by **Cost_per_Unit**. Furthermore, the **p-value** for the slope is less than **2e-16**, confirming that this relationship is statistically significant.
+
+Overall, these analyses indicate that **Cost_per_Unit** is a strong predictor of **Price_Per_Unit**, with increases in production or acquisition costs closely associated with higher selling prices.
+
+## 2) Revenue \~ Costs
+
+### Correlation Analysis
+
+```{r}
+numeric_corr["Revenue","Costs"]
+```
+
+### Scatter Plots
+
+```{r}
+Revenue_vs_Costs <- ggplot(Data3_EDA_Data, aes(x = Costs, y = Revenue)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred") +
+  labs(
+    title = "Revenue vs Costs",
+    x = "Costs",
+    y = "Revenue"
+  ) +
+  theme_minimal()
+
+ggsave("Revenue_vs_Costs.png")
+```
+
+```{r}
+print(Revenue_vs_Costs)
+```
+
+### Linear Regression Detail
+
+```{r}
+model_revenue_costs <- lm(Revenue ~ Costs, data = Data3_EDA_Data)
+summary(model_revenue_costs)
+```
+
+### Analysis and Outcome
+
+The relationship between **Revenue** and **Costs** is very strong, with a correlation coefficient of **0.9135**. This means that when costs go up, revenue generally goes up as well. Looking at the scatter plot, the points clearly follow an upward trend, and the regression line shows that higher costs are linked to higher revenue in a fairly straight-line pattern.
+
+The linear regression results back this up. The slope for **Costs** is **3.076**, which tells us that for every one-unit increase in costs, revenue rises by about **3.08 units**. The model’s **R² value of 0.8345** means that around **83%** of the differences in revenue can be explained by changes in costs. The **p-value** for the slope is smaller than **2e-16**, showing that this effect is statistically very significant.
+
+In short, **Costs** are a strong predictor of **Revenue**. Higher spending on production or operations is closely associated with higher revenue, likely because more investment leads to more sales or output.
+
+## 3) Revenue \~ Profit
+
+### Correlation Analysis
+
+```{r}
+numeric_corr["Revenue","Profit"]
+```
+
+### Scatter Plots
+
+```{r}
+Revenue_vs_Profit <- ggplot(Data3_EDA_Data, aes(x = Revenue, y = Profit)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "darkred") +
+  labs(
+    title = "Revenue vs Profit",
+    x = "Revenue",
+    y = "Profit"
+  ) +
+  theme_minimal()
+
+ggsave("Revenue_vs_Profit.png")
+```
+
+```{r}
+print(Revenue_vs_Profit)
+```
+
+### Linear Regression Detail
+
+```{r}
+model_revenue_profit <- lm(Profit ~ Revenue, data = Data3_EDA_Data)
+summary(model_revenue_profit)
+```
+
+**Analysis and Outcome**
+
+The relationship between **Revenue** and **Profit** is extremely strong, with a correlation of **0.9865**. This shows that as revenue goes up, profit also rises in a very consistent way. The scatter plot makes this clear, with most points lining up closely along the upward-sloping regression line.
+
+The linear regression results confirm this pattern. The slope for **Revenue** is **0.7287**, which means that for every 1-unit increase in revenue, profit increases by roughly **0.73 units**. The **p-value** is smaller than **2e-16**, showing that this relationship is highly statistically significant. The model’s **R² value of 0.9733** indicates that about **97%** of the variation in profit can be explained by revenue.
+
+Overall, this analysis shows that **Revenue** is an excellent predictor of **Profit**, with higher revenue almost always leading to higher profit in this dataset.
+
+## Multivariate Analyses on Numeric data types
+
+### Correlation using all numeric variables
+
+```{r}
+numeric_corr <- Data3_EDA_Data %>%
+select(where(is.numeric)) %>%
+cor(use = "pairwise.complete.obs")
+numeric_corr
+```
+
+Heat Map
+
+```{r}
+melt(numeric_corr) %>%
+ggplot(aes(Var1, Var2, fill = value)) +
+geom_tile() +
+scale_fill_gradient2(low = "red", high = "blue", mid = "white", midpoint = 0) +
+theme_minimal() +
+labs(title = "Correlation Heatmap")
+```
+
+### Multiple Linear Regression
+
+```{r}
+model_multi <- lm(
+  Profit ~ Revenue + Costs + Cost_per_Unit + Price_Per_Unit + Quantity,
+  data = Data3_EDA_Data)
+summary(model_multi)
+```

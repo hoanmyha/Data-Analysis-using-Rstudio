@@ -1,0 +1,284 @@
+---
+title: "Section 6: Non-Linear Regression Modeling"
+author: "My Ha"
+format: html
+editor: visual
+---
+
+## Linear Regression Modeling in R
+
+Section: 02
+
+Name: My Ha
+
+###References
+
+To learn more about Quarto see <https://quarto.org>
+
+#### Underlying Non-linear Equations for this analysis:
+
+Sphere Radius = (X^2+y^2+z^2)^.5
+
+Square Area = X \* Y
+
+Ring Area = pi()*R\^2-pi()*r\^2
+
+Cube Volume = X \* Y \* Z
+
+Cylindrical Volume = pi()*R\^2*h
+
+Sphere Volume = 4*pi()*R\^2/3
+
+### Install Packages- comment out when complete
+
+```{r}
+#install.packages(c("rlang", "vctrs", "pillar", "tibble", "dplyr","plotly"))
+```
+
+### Install Libraries
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(readxl)
+library(reshape2)
+library(plotly)
+```
+
+### Set Working Directory and load file into that location
+
+```{r}
+getwd()
+```
+
+## Read the data from an excel Spreadsheet. We will test this data to see how well it fits to the prescribed formulas.
+
+```{r}
+df <- read_excel("data for modeling.xlsx")
+```
+
+### Exploratory Data Analysis of All Variables - Ensuring the data is capable of analysis.
+
+```{r}
+head(df)
+str(df)
+summary(df)
+```
+
+### Distributions - Observation of the distributions is key to proper usage of a variables
+
+[Question #1: Which Distribution appears to be skewed right more than the others?]{.underline}
+
+Answer: Cylinder_Volume, Sphere_Volume
+
+The distributions for **Cylinder_Volume** and **Sphere_Volume** appear to be the most right-skewed among all variables. This is evident from their long right tails, where a small number of observations have significantly larger values compared to the rest
+
+```{r}
+df %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value") %>%
+  ggplot(aes(x = Value)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  facet_wrap(~ Variable, scales = "free") +
+  theme_minimal()
+```
+
+### Pairwise Relationships
+
+[Question #2: Which Pairwise comparison(s) seem to more strongly correlated?]{.underline}
+
+Answer: Sphere_Volume ↔ Ring, Z ↔ R, Z ↔ r
+
+The strongest pairwise correlations are observed between **Sphere_Volume and Ring**, as well as **Z and R**, and **Z and r**, as these pairs show clear linear patterns with tightly clustered points. These relationships are strong because the variables are mathematically related through geometric formulas.
+
+```{r}
+pairs(df)
+```
+
+### Correlation Matrix
+
+```{r}
+print(cor(df))
+```
+
+### Outlier Detection
+
+[Question #3: Why do “Sphere Volume” and “Cylinder Volume” appear to have more outliers than the others?]{.underline}
+
+Answer: **Sphere_Volume** and **Cylinder_Volume** appear to have more outliers because they are calculated using squared and cubic relationships involving the radius. As a result, small increases in radius lead to disproportionately large increases in volume. This amplifies extreme values and creates a wider spread in the data, making high-end observations appear as outliers compared to other variables.
+
+```{r}
+df %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value") %>%
+  ggplot(aes(x = Variable, y = Value)) +
+  geom_boxplot(fill = "lightgreen") +
+  facet_wrap(~ Variable, scales = "free") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank())
+```
+
+### Non-Linear regressions
+
+#### Quadratic Regression of X on X\^2
+
+```{r}
+model_x2 <- lm(X^2 ~ X, data = df)
+summary(model_x2)
+```
+
+```{r}
+ggplot(df, aes(x = X, y = X^2)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Quadratic Regression: X^2 on X", x = "X", y = "X^2") +
+  theme_minimal()
+```
+
+#### Quadratic regression of X, Y, and X\*Y on Square_Area
+
+#####Square Area by X only
+
+```{r}
+model_sq_x <- lm(Square_Area ~ X, data = df)
+summary(model_sq_x)
+```
+
+```{r}
+ggplot(df, aes(x = X, y = Square_Area)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Square Area by X", x = "X", y = "Square_Area") +
+  theme_minimal()
+```
+
+#####Square Area by Y only
+
+```{r}
+model_sq_y <- lm(Square_Area ~ Y, data = df)
+summary(model_sq_y)
+```
+
+```{r}
+ggplot(df, aes(x = Y, y = Square_Area)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Square Area by Y", x = "Y", y = "Square_Area") +
+  theme_minimal()
+```
+
+[Question #4: Why do X and Y so poorly explain Square_Area?]{.underline}
+
+Answer: Square_Area is defined as X × Y, meaning it depends on both variables together in a multiplicative (nonlinear) way. When you regress Square_Area on X alone, you ignore Y, which is a key part of what determines the area. Because X and Y vary independently, neither variable by itself captures this joint effect. As a result, each model explains only a limited portion of the variation, keeping R² below 40%.
+
+#####Since X nor Y explain the Square area well (\<40% R\^2) we need to look elsewhere like by X\*Y
+
+```{r}
+df <- df %>% mutate(XY = X * Y)
+model_sq_xy <- lm(Square_Area ~ XY, data = df)
+summary(model_sq_xy)
+```
+
+```{r}
+ggplot(df, aes(x = XY, y = Square_Area)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Square Area by X*Y", x = "X*Y", y = "Square_Area") +
+  theme_minimal()
+```
+
+##### X\*Y does explain the Square Area better with a low p-value (as did X and Y) and twice the correlation
+
+[Question #5 : Why does X\*Y better explain Square_Area?]{.underline}
+
+Answer:
+
+##### Cube Volume by X*Y*Z
+
+```{r}
+df <- df %>% mutate(XYZ = X * Y * Z)
+model_cube <- lm(Y ~ XYZ, data = df)
+summary(model_cube)
+```
+
+```{r}
+ggplot(df, aes(x = XYZ, y = Cube_Volume)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Cube Volume by X*Y*Z", x = "X*Y*Z", y = "Cube_Volume") +
+  theme_minimal()
+```
+
+##### While XYZ are important to the Cube Volume (low p=value) there is still variation which is not understood
+
+##### R by X, Y, and Z
+
+```{r}
+df <- df %>% mutate(Rcalc = sqrt(X^2 + Y^2 + Z^2))
+model_R <- lm(R ~ Rcalc, data = df)
+summary(model_R)
+```
+
+```{r}
+ggplot(df, aes(x = Rcalc, y = R)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "R by Calculated Sphere Radius", x = "Rcalc = sqrt(X^2+Y^2+Z^2)", y = "R") +
+  theme_minimal()
+```
+
+##### While the formula for the radius of a sphere is important for describing R (low p=value) there is still some variation which is not understood (70% R\^2)
+
+##### Cylindrical Volume by R and h
+
+```{r}
+df <- df %>% mutate(CylVolume = pi * R^2 * h)
+model_cyl <- lm(Cylinder_Volume ~ CylVolume, data = df)
+summary(model_cyl)
+```
+
+```{r}
+ggplot(df, aes(x = CylVolume, y = Cylinder_Volume)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Cylinder Volume by pi*R^2*h", x = "CylVolume (calculated)", y = "Cylinder_Volume") +
+  theme_minimal()
+```
+
+##### The quadratic equation used to represent Cyl_Volume poorly explains the Cylinder_Volume due to the high p=value and low correlation. This tells use there is still variation which is not understood.
+
+##### Spherical Volume by R
+
+```{r}
+df <- df %>% mutate(SpherVolume = (4 * pi * R^3) / 3)
+model_sph <- lm(Sphere_Volume ~ SpherVolume, data = df)
+summary(model_sph)
+```
+
+```{r}
+ggplot(df, aes(x = SpherVolume, y = Sphere_Volume)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Sphere Volume by (4/3)*pi*R^3", x = "SpherVolume (calculated)", y = "Sphere_Volume") +
+  theme_minimal()
+```
+
+##### The cubic equation used to represent Spher_Volume poorly explains the Sphere_Volume due to the high p=value and low correlation. This tells use there is still variation which is not understood.
+
+##### Ring by R
+
+```{r}
+df <- df %>% mutate(Ring_area = pi * R^2 - pi * r^2)
+model_ring <- lm(Ring ~ Ring_area, data = df)
+summary(model_ring)
+```
+
+```{r}
+ggplot(df, aes(x = Ring_area, y = Ring)) +
+  geom_point(color = "steelblue", alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Ring by pi*R^2 - pi*r^2", x = "Ring_area (calculated)", y = "Ring") +
+  theme_minimal()
+```
+
+##### The compound quadratic equation used to represent Ring_area poorly explains Ring due to the high p=value and low correlation. This tells use there is still variation which is not understood.

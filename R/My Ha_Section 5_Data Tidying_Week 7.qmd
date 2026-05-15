@@ -1,0 +1,269 @@
+---
+title: "Section 5: Data Tidying"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+------------------------------------------------------------------------
+
+## **Session 5: Tidying Data Exercise**
+
+**Section: 02**
+
+**Name: My Ha**
+
+## References
+
+To learn more about Quarto see <https://quarto.org>
+
+Course Text Link:
+
+[Chapter 5: R for Data Science](https://r4ds.hadley.nz/data-tidy.html)
+
+## Install Packages- comment out when complete
+
+```{r}
+#install.packages(c("rlang", "vctrs", "pillar", "tibble", "dplyr"))
+```
+
+## Install Libraries
+
+```{r}
+library(tidyverse)
+```
+
+## Set Working Directory and load file into that location
+
+```{r}
+getwd()
+```
+
+## Work through the sections of Chapter 5 performing the code as explained in each section. the data for the exercise is available in the Tidyverse Library so nothing will need to be loaded.
+
+```{r}
+table1
+```
+
+```{r}
+table2
+```
+
+```{r}
+table3
+```
+
+### A “tidy” dataset
+
+#### There are three interrelated rules that make a dataset tidy:
+
+1.  Each variable is a column; each column is a variable.
+2.  Each observation is a row; each row is an observation.
+3.  Each value is a cell; each cell is a single value.
+
+```{r}
+# Compute rate per 10,000
+table1 |>
+  mutate(rate = cases / population * 10000)
+```
+
+```{r}
+# Compute total cases per year
+table1 |>
+  group_by(year) |>
+  summarize(total_cases = sum(cases))
+```
+
+```{r}
+# Visualize changes over time
+ggplot(table1, aes(x = year, y = cases)) +
+  geom_line(aes(group = country), color = "grey50") +
+  geom_point(aes(color = country, shape = country)) +
+  scale_x_continuous(breaks = c(1999, 2000)) # x-axis breaks at 1999 and 2000
+```
+
+### Lengthening data
+
+### Most real data is untidy
+
+### There are two main reasons:
+
+Data is often organized to facilitate some goal other than analysis. For example, it’s common for data to be structured to make data entry, not analysis, easy.
+
+Most people aren’t familiar with the principles of tidy data, and it’s hard to derive them yourself unless you spend a lot of time working with data.
+
+### Data in Column names
+
+```{r}
+billboard
+```
+
+### pivot_longer() will be used to structure the data
+
+```{r}
+billboard |>
+  pivot_longer(
+    cols = starts_with("wk"), #columns to be pivotted (or not using !C())
+    names_to = "week", # new column name
+    values_to = "rank" # values in new column,
+  )
+```
+
+Most of rows have rank with NA values (\>24,000 rows).
+
+Remove the rows with rank like NA
+
+```{r}
+billboard |>
+  pivot_longer(
+    cols = starts_with("wk"), #columns to be pivotted (or not using !C())
+    names_to = "week", # new column name
+    values_to = "rank", # values in new column
+     values_drop_na = TRUE
+  )
+```
+
+Row count dropped to 5,307 which tidys the data for analysis
+
+Weeks have an awkward name add need a tidy step as well. remove the “wk” in the code below using parse_number() which pulls the number in the chr and mutate changes week to the number
+
+```{r}
+billboard_longer <- billboard |>
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    values_to = "rank",
+    values_drop_na = TRUE
+  ) |>
+  mutate(
+    week = parse_number(week)
+  )
+```
+
+#### we’re in a good position to visualize how song ranks vary over time
+
+```{r}
+billboard_longer |>
+  ggplot(aes(x = week, y = rank, group = track)) +
+  geom_line(alpha = 0.25) +
+  scale_y_reverse()
+```
+
+### Pivoting demonstration
+
+```{r}
+df <- tribble(
+  ~id,  ~bp1, ~bp2,
+   "A",  100,  120,
+   "B",  140,  115,
+   "C",  120,  125
+)
+```
+
+#### Pivoting to get our new dataset with three variables:
+
+#### `id` (already exists)
+
+#### `measurement` (the column names)
+
+#### `value` (the cell values)
+
+```{r}
+df_longer <- df |>
+  pivot_longer(
+    cols = bp1:bp2,
+    names_to = "measurement",
+    values_to = "value"
+  )
+print (df_longer)
+```
+
+### Many variables in column names (untidy data for sure!)
+
+```{r}
+who2
+```
+
+#### prior computer systems used techniques to store coded data to save memory and reduce run times. hence the cryptic column names. The older the data the more interpretation is needed to ensure the data is interpretted accurately.
+
+In this data; Country and year are clear. However the later columns carry other data in their names: sp/rel/ep
+
+sp: describes the method used for the diagnosis
+
+rel: m/f is the gender
+
+ep: the age range (014 represents 0-14, for example)
+
+### Pivot_longer to capture the data from the names. R allow deciphering of data by using the underscore as a separator to differentiate the column names
+
+```{r}
+who2 |>
+  pivot_longer(
+    cols = !(country:year),
+    names_to = c("diagnosis", "gender", "age"),
+    names_sep = "_",
+    values_to = "count"
+  )
+```
+
+##remember from above:
+
+### There are two main reasons:
+
+Data is often organized to facilitate some goal other than analysis. For example, it’s common for data to be structured to make data entry, not analysis, easy.
+
+Most people aren’t familiar with the principles of tidy data, and it’s hard to derive them yourself unless you spend a lot of time working with data.
+
+Let’s stretch this idea to another level
+
+#### data and variable names in the column headers
+
+```{r}
+household
+```
+
+#### Step 1 brings out one layer of data from the structure
+
+```{r}
+household2 <- household |>
+  pivot_longer(
+    cols = !family,
+    names_to = c(".value", "child"),
+    names_sep = "_",
+    values_drop_na = TRUE
+  )
+```
+
+now the data is tidier: 1. Each variable is a column; each column is a variable.
+
+2.  Each observation is a row; each row is an observation.
+3.  Each value is a cell; each cell is a single value.
+
+### Pivot_wider() - makes datasets wider by increasing columns and reducing rows and helps when one observation is spread across multiple rows
+
+```{r}
+cms_patient_experience
+```
+
+#### seeing duplicate values in the first column of a data table is an indicator that the table may need some tidying. recall the rules above about a row/observation
+
+```{r}
+step_1 <- cms_patient_experience |>
+  pivot_wider(
+    names_from = measure_cd,
+    values_from = prf_rate
+  )
+```
+
+#### another step is needed
+
+```{r}
+Step_2 <- cms_patient_experience |>
+  pivot_wider(
+    id_cols = starts_with("org"),
+    names_from = measure_cd,
+    values_from = prf_rate
+  )
+```
+
+### Notice the NA cells in Step_2. Strategies to deal with this missing data will come in Data 340: Data Mining!

@@ -1,0 +1,50 @@
+---
+title: "Section 1 Import and Communicate Assignment"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+## Section 1: Import and Communicate Assignment
+
+Data 332 Section \# **02**
+
+Student name: **My Ha**
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(readxl)
+library(writexl)
+```
+
+```{r}
+# read xlsx and assign to a variable
+xlsx_file<-read_xlsx("Data332_Section 1 Assignment.xlsx")
+#
+# Print the File to confirm
+print (read_xlsx("Data332_Section 1 Assignment.xlsx"))
+```
+
+```{r}
+# View the File
+xlsx_file
+```
+
+\# The top row are the column names and the data types for each column \# shown below with "\< \>" designations #Check Global environment for the file and verify contents
+
+```{r}
+str(xlsx_file)
+```
+
+```{r}
+library(tibble)
+library(purrr)
+Excel_datatypes <- tibble( column = names(xlsx_file),
+type = map_chr(xlsx_file,
+- paste(class(.x), collapse = ", ")) )
+print (Excel_datatypes)
+
+```

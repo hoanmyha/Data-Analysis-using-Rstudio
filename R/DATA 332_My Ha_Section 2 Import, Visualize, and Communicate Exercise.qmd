@@ -1,0 +1,186 @@
+---
+title: "Session 2: Import, Visualize, and Communicate"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+## Importing with Webscraping
+
+Chapter 24 Web Scraping <https://r4ds.hadley.nz/webscraping.html#introduction>
+
+To learn more about Quarto see <https://quarto.org.>
+
+## Libraries needed
+
+```{r}
+library(rvest)
+library(tidyverse)
+```
+
+```{r}
+library(tibble)
+library(purrr)
+library(stringr)
+library(readr)
+library(readxl)
+library(writexl)
+library(ggplot2)
+library(dplyr)
+```
+
+## Web scraping
+
+Web scraping is possible because most pages that contain data that you want to scrape generally have a consistent structure.
+
+\- elements
+
+<https://developer.mozilla.org/en-US/docs/Web/HTML>
+
+\- attributes
+
+Two of the most important attributes are id and class, which are used in conjunction with CSS (Cascading Style Sheets) to control the visual appearance of the page.
+
+##Target Site for webscraping
+
+Top Trending Stocks: US stocks with the highest interest today - Yahoo Finance
+
+<https://finance.yahoo.com/markets/stocks/trending/>
+
+```{r}
+url<- "https://finance.yahoo.com/markets/stocks/trending/"
+html <- read_html(url)
+```
+
+Using Selectorgadget identify the desired table, select it, then copy the element .yf-1bczin to the statement below:
+
+```{r}
+section <- html |> html_elements(".yf-1bczin")
+section
+```
+
+```{r}
+html |> html_table()
+```
+
+```{r}
+trending_table <- html |>
+html_element("table") |>
+html_table()
+trending_table
+```
+
+## Check the datatypes of trending_table
+
+```{r}
+trending_table_datatypes <- tibble( column = names(trending_table),
+type = map_chr(trending_table,
+~ paste(class(.x), collapse = ", ")) )
+print(trending_table_datatypes)
+```
+
+## Prepare the table for plotting
+
+For this example we will move the table to Excel and clean the table there. We will learn more data operations later in the course.
+
+write the trending_table to your working Directory as “trending_table_raw.xlsx”
+
+```{r}
+write_xlsx(trending_table,"trending_table_raw.xlsx")
+```
+
+## In Excel perform these changes to the data:
+
+1.  Remove column 3
+
+2.  Remove rows 2,6
+
+3.  trim the price from column named “Price” and put in a column named “PRICE_REVISED”
+
+4.  Change the datatype for Change to a number 4
+
+5.  Change the datatype for Change % to a Percentage
+
+6.  Delete the columns “Volume, Avg Vol (3M), Market Cap, P/E Ratio (TTM), 52 Wk Change %, 52 Wk Range”
+
+    Rename the file to TRENDING_TABLE_REPAIRED.XLSX then load to your working directory
+
+## Read the file into R
+
+```{r}
+Clean_Table <- read_xlsx("TRENDING_TABLE_REPAIRED.xlsx")
+```
+
+Change datatypes for Change, Change %, and PRICE_REVISED
+
+```{r}
+Clean_Table <- Clean_Table %>%
+mutate(
+Change = as.numeric(Change),
+PRICE_REVISED = as.numeric(PRICE_REVISED),
+`Change %` = str_remove(`Change %`, "%"), # remove %
+`Change %` = as.numeric(`Change %`) # convert to decimal
+)
+```
+
+## Here is where we begin our journey with ggplot()
+
+ggplot(): <https://rstudio.github.io/cheatsheets/html/data-visualization.html>
+
+Layers: ggplot(data = ) + (mapping = aes(), stat = , position = ) + + + +
+
+Cheat Sheet : <https://rstudio.github.io/cheatsheets/data-visualization.pdf>
+
+## Now create a column chart that demonstrates the stock prices for each company
+
+```{r}
+Original <- ggplot(Clean_Table, aes(x = reorder(Name, PRICE_REVISED),
+y = PRICE_REVISED)) +
+geom_col(fill = "steelblue") +
+coord_flip() +
+labs( title = "Price (PRICE_REVISED) by Company",
+x = "Company", y = "Price (Revised)" ) + theme_minimal(base_size = 12)
+print(Original)
+```
+
+## Clean the plot with the changes below and print to a new name
+
+```{r}
+Cleaner_view <- ggplot(
+  Clean_Table,
+  aes(x = reorder(Name, PRICE_REVISED), y = PRICE_REVISED)
+) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Trending Price by Company",
+    x = "Company",
+    y = "Trending Price"
+  ) +
+  theme_minimal(base_size = 14)
+
+print(Cleaner_view)
+```
+
+## Create a scatter plot to show Change % and Price by Name
+
+```{r}
+Scatter <- ggplot(
+  Clean_Table,
+  aes(x = `Change %`, y = PRICE_REVISED, label = Name)
+) +
+  geom_point(color = "steelblue", size = 6) +
+  geom_text(nudge_y = 1, size = 3.2) +
+  labs(
+    title = "Scatter Plot of Change % vs Price (Revised)",
+    x = "Change (%)",
+    y = "Price"
+  ) +
+  theme_minimal(base_size = 8)
+
+print(Scatter)
+```
+
+When you click the Render button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+The echo: false option disables the printing of code (only output is displayed)

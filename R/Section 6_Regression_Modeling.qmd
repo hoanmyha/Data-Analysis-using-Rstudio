@@ -1,0 +1,270 @@
+---
+title: "Section 6 Regression Modeling"
+author: "My Ha"
+format: html
+---
+
+## Linear Regression Modeling in R
+
+Section: 02
+
+Name: My Ha
+
+References
+
+To learn more about Quarto see <https://quarto.org>
+
+### Install Packages- comment out when complete
+
+```{r}
+#install.packages(c("tidyverse", "ggplot2"))
+#install.packages(c("rlang", "vctrs", "pillar"))
+#install.packages(c("tibble", "dplyr", "GGally","plotly","tinytex"))
+#install.packages("plotly")
+```
+
+### Install Libraries
+
+```{r}
+suppressWarnings(library(tidyverse, quietly = T))
+```
+
+```{r}
+suppressWarnings(library(readxl, quietly = T))
+suppressWarnings(library(ggplot2, quietly = T))
+suppressWarnings(library(reshape2, quietly = T))
+```
+
+```{r}
+suppressWarnings(library(GGally, quietly = T))
+suppressWarnings(library(plotly, quietly = T))
+```
+
+### Set Working Directory and load file into that location
+
+```{r}
+getwd()
+```
+
+## Read the data from an excel Spreadsheet
+
+```{r}
+Regression_data <- read_excel("Data for Regression Analysis.xlsx")
+```
+
+### Exploratory Data Analysis of All Variables
+
+```{r}
+summary(Regression_data)
+```
+
+### Distributions
+
+```{r}
+Regression_data %>%
+  select(X, Y, Z, r, h, `Square Area`, `Cube Volume`, `Cylinder Volume`, `Sphere Volume`, `Ring`) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  facet_wrap(~ name, scales = "free") +
+  theme_minimal()
+```
+
+Question #1: Which Distribution appears to be skewed right more than the others?
+
+**Answer:**Sphere Volume is the most right-skewed, followed by Cylinder Volume. This happens because both formulas involve R\^2 or R\^3 , so larger values of R grow very quickly and create extreme high values. As a result, a few large observations pull the distribution to the right. You can also see this in the summary statistics, where the maximum values are much farther from the median than the minimum values.
+
+### Pairwise Relationships
+
+```{r}
+Regression_data %>%
+  select(X, Y, Z, R, r, h, `Square Area`, `Cube Volume`, `Cylinder Volume`, `Sphere Volume`, `Ring`) %>%
+  ggpairs(
+    lower = list(continuous = wrap("smooth", method = "lm", se = FALSE)),
+    diag  = list(continuous = wrap("densityDiag")),
+    upper = list(continuous = wrap("cor", size = 5)),
+    progress = FALSE
+  )
+```
+
+Question #2: Which Pairwise comparison(s) appear(s) to seemed to more strongly correlated?
+
+**Answer:** Sphere Volume and Cylinder Volume have the strongest relationship (about 0.886). Ring is also strongly related to both Cylinder Volume (about 0.787) and Sphere Volume (about 0.882). This makes sense because all three depend on the same variable, 𝑅 R, so changes in 𝑅 R affect all of them and create strong correlations..
+
+### Correlation Matrix
+
+```{r}
+corelation <- cor(Regression_data %>% select(X, Y, Z, r, h,, `Square Area`, `Cube Volume`, `Cylinder Volume`, `Sphere Volume`, `Ring`))
+corelation
+```
+
+### Outlier Detection
+
+```{r}
+Regression_data %>%
+  select(X, Y, Z, r, h) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(x = name, y = value)) +
+  geom_boxplot() +
+  theme_minimal() +
+  coord_flip()
+```
+
+```{r}
+Regression_data %>%
+  select(`Square Area`, `Cube Volume`, `Cylinder Volume`, `Sphere Volume`, `Ring`) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(x = name, y = value)) +
+  geom_boxplot() +
+  theme_minimal() +
+  coord_flip()
+```
+
+Question #3: Why do "Sphere Volume" and "Cylinder Volume" appear to have more outliers than the others?
+
+**Answer:** Both use formulas that raise 𝑅 R to the 2nd or 3rd power (pi*R²*h and 4/3*pi*R³). Because of this, even small increases in 𝑅 R lead to much larger volume values. So when 𝑅 R is just a bit above average, the volume becomes unusually large, creating extreme values that show up as outliers in the boxplot.
+
+### Linear regressions
+
+#### Square Area and X
+
+```{r}
+model_square_X <- lm(`Square Area` ~ X, data = Regression_data)
+summary(model_square_X)
+```
+
+```{r}
+ggplot(Regression_data, aes(x = X, y = `Square Area`)) +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+  labs(
+    title = "Square Area vs X",
+    x = "X Dimension",
+    y = "Square Area"
+  ) +
+  theme_minimal()
+```
+
+Question #4: Since Square Area and X are poorly correlated, can we assume that X was not used to generate the Square Area?
+
+**Answer:** No, we can’t assume that. X was likely used to calculate Square Area (Square Area = X × Y), but Y also changes and affects the result. When we look at X alone, we’re ignoring Y, so the relationship appears weak (low R²). A weak correlation doesn’t mean X wasn’t used, it just means X by itself doesn’t explain much of the variation.
+
+#### Cylinder Volume and Height (h)
+
+```{r}
+model_cylinder_h <- lm(`Cylinder Volume` ~ h, data = Regression_data)
+summary(model_cylinder_h)
+```
+
+```{r}
+ggplot(Regression_data, aes(x = h, y = `Cylinder Volume`)) +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+  labs(
+    title = "Cylinder Volume vs h",
+    x = "Cylinder Volume",
+    y = "height (h)"
+  ) +
+  theme_minimal()
+```
+
+Question #5: Since Cylinder Volume and h are poorly correlated, can we assume that h was not used to generate the Cylinder Volume?
+
+**Answer:** No. Cylinder Volume is calculated using pi*R²*h, so h is definitely part of the formula. However, R² has a much stronger effect, so it drives most of the variation. When we look at h alone, we’re ignoring R, which makes the relationship appear weak (only about 6% explained). A weak correlation doesn’t mean h wasn’t used, it just means it can’t explain the outcome by itself.
+
+#### Cylinder Volume and Ring Volume
+
+```{r}
+model_cylinder_Ring <- lm(`Cylinder Volume` ~ Ring, data = Regression_data)
+summary(model_cylinder_Ring)
+```
+
+```{r}
+ggplot(Regression_data, aes(x = `Ring`, y = `Cylinder Volume`)) +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+  labs(
+    title = "Cylinder Volume vs Ring",
+    x = "Cylinder Volume",
+    y = "Ring"
+  ) +
+  theme_minimal()
+```
+
+Question #6: Which variable (X, Y, Z, R, r, h) is responsible for such a strong correlation between Ring and Cylinder Volume?
+
+**Answer:** R is responsible. Both Ring Area and Cylinder Volume depend heavily on 𝑅\^2 , so when 𝑅 changes, both values change in the same direction. Since r is relatively small, its effect is limited, and R² drives most of the relationship. This is why the correlation between Ring and Cylinder Volume is strong (≈0.787).
+
+### Multiple Linear Regressions
+
+#### Square Area, X, and Y
+
+```{r}
+Model_SQ_X_Y <- lm(`Square Area` ~ X + Y, data = Regression_data)
+summary(Model_SQ_X_Y)
+```
+
+```{r}
+plot_ly(
+  Regression_data,
+  x = ~X,
+  y = ~Y,
+  z = ~`Square Area`,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(
+    size = 4,
+    color = ~`Square Area`,
+    colorscale = "Viridis",
+    opacity = 0.7
+  )
+) %>%
+  layout(
+    title = "3D Scatter Plot: X, Y, Square Area",
+    scene = list(
+      xaxis = list(title = "X"),
+      yaxis = list(title = "Y"),
+      zaxis = list(title = "Square Area")
+    )
+  )
+```
+
+Question #7: Since Square Area is poorly correlated with X and Y, can we assume that neither X nor Y was not used to generate the Square Area?
+
+**Answer:** No. X and Y were used (Square Area = X × Y), but the relationship is multiplicative, not additive. When we use a linear model with X + Y, it can’t capture how they interact, so the fit looks weak (low R²). This doesn’t mean X and Y are unimportant, it just means the model is specified incorrectly.
+
+#### Cylinder volume with R and h
+
+```{r}
+Model_cyl_R_h <- lm(`Cylinder Volume` ~ R + h, data = Regression_data)
+summary(Model_cyl_R_h)
+```
+
+```{r}
+plot_ly(
+  Regression_data,
+  x = ~R,
+  y = ~h,
+  z = ~`Cylinder Volume`,
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(
+    size = 4,
+    color = ~`Cylinder Volume`,
+    colorscale = "Viridis",
+    opacity = 0.7
+  )
+) %>%
+  layout(
+    title = "3D Scatter Plot: R, h, and Cylinder Volume",
+    scene = list(
+      xaxis = list(title = "R"),
+      yaxis = list(title = "h"),
+      zaxis = list(title = "Cylinder Volume")
+    )
+  )
+```
+
+Question #8: If R and h were not used to generate Cylinder Volume why is the correlation so strong?
+
+**Answer:** R and h were actually used to generate Cylinder Volume (pi*R²*h). The strong R² (about 82%) when using both R and h confirms this. The reason h alone looked weak earlier is because R² has a much bigger effect. Once we include both R and h together, they explain most of the variation, which matches the true formula.

@@ -1,0 +1,588 @@
+---
+title: "Section 4: Statisical Analysis Assignment"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+## Statistical Analysis
+
+Section: 02
+
+Name: My Ha
+
+## References
+
+To learn more about Quarto see <https://quarto.org>
+
+### Install Packages- comment out when complete
+
+```{r}
+#install.packages(c("rlang", "vctrs", "pillar", "tibble", "dplyr"))
+```
+
+### Install Libraries
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(reshape2)
+```
+
+### Set Working Directory and load file into that location
+
+```{r}
+getwd()
+```
+
+### Load Data Dictionary Image and Data from your Working Directory
+
+```{r}
+Section4DataNew <-read_xlsx("Section_4_Data for Analysis.xlsx", sheet = "Assignment")
+glimpse(Section4DataNew)
+```
+
+![Figure: Assignment Data Dictionary](section%204%20assignment%20data%20dictionary.png){fig-align="center"}
+
+## Statistical Analysis
+
+### Univariate Analyses
+
+### For each Continuous and Interval Variable perform these analyses
+
+## Offer_Price
+
+####Statistical Summary
+
+```{r}
+Offer_Price_Summary <- summary(Section4DataNew$Offer_Price)
+print(Offer_Price_Summary)
+```
+
+### Natural Logarithm for Offer Price
+
+```{r}
+Section4DataNew$Offer_Price_LN <- log(Section4DataNew$Offer_Price)
+```
+
+### ZScore Scale for Offer Price
+
+```{r}
+Section4DataNew$Offer_Price_ZScale<- scale(Section4DataNew$Offer_Price)
+```
+
+### Histogram
+
+```{r}
+Offer_Price_Histogram<-ggplot(Section4DataNew, aes(x = Offer_Price)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of Offer Price",
+x = "Offer Price",
+y = "Count") +
+theme_minimal()
+print(Offer_Price_Histogram)
+```
+
+### Histogram of Offer_Price Scaling
+
+```{r}
+Offer_Price_LN_Histogram<-ggplot(Section4DataNew, aes(x = Offer_Price_LN)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of LN(Offer Price)",
+x = "LN(Offer Price)",
+y = "Count") +
+theme_minimal()
+print(Offer_Price_LN_Histogram)
+```
+
+### Histogram of Offer_Price ZScale
+
+```{r}
+Offer_Price_ZScale_Histogram<-ggplot(Section4DataNew,
+aes(x = Offer_Price_ZScale)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of ZScale(Offer Price)",
+x = "ZScale(Offer Price)",
+y = "Count") +
+theme_minimal()
+print(Offer_Price_ZScale_Histogram)
+```
+
+### 
+
+## Sales Price
+
+####Statistical Summary
+
+```{r}
+Sales_Price_Summary <- summary(Section4DataNew$Sales_Price)
+print(Sales_Price_Summary)
+```
+
+### Natural Logarithm for Sales Price
+
+```{r}
+Section4DataNew$Sales_Price_LN <- log(Section4DataNew$Sales_Price)
+```
+
+### Natural Logarithm for Sales Price
+
+```{r}
+Section4DataNew$Sales_Price_LN <- log(Section4DataNew$Sales_Price)
+```
+
+### ZScore Scale for Sales Price
+
+```{r}
+Section4DataNew$Sales_Price_ZScale<- scale(Section4DataNew$Sales_Price)
+```
+
+### Histogram
+
+```{r}
+Sales_Price_Histogram<-ggplot(Section4DataNew, aes(x = Sales_Price)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of Sales Price",
+x = "Sales Price",
+y = "Count") +
+theme_minimal()
+print(Sales_Price_Histogram)
+```
+
+### Histogram of Sales_Price Scaling
+
+```{r}
+Sales_Price_LN_Histogram<-ggplot(Section4DataNew, aes(x = Sales_Price_LN)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of LN(Sales Price)",
+x = "LN(Sales Price)",
+y = "Count") +
+theme_minimal()
+print(Sales_Price_LN_Histogram)
+```
+
+### Histogram of Sales_Price ZScale
+
+```{r}
+Sales_Price_ZScale_Histogram<-ggplot(Section4DataNew, aes(x = Sales_Price_ZScale)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of ZScale(Sales Price)",
+x = "ZScale(Sales Price)",
+y = "Count") +
+theme_minimal()
+print(Sales_Price_ZScale_Histogram)
+```
+
+## Quantity
+
+####Statistical Summary
+
+```{r}
+Quantity_Summary <- summary(Section4DataNew$Quantity)
+print(Quantity_Summary)
+```
+
+### Natural Logarithm for Quantity
+
+```{r}
+Section4DataNew$Quantity_LN <- log(Section4DataNew$Quantity)
+```
+
+### ZScore Scale for Quantity
+
+```{r}
+Section4DataNew$Quantity_ZScale<- scale(Section4DataNew$Quantity)
+```
+
+### Histogram
+
+```{r}
+Quantity_Histogram<-ggplot(Section4DataNew, aes(x = Quantity)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of Quantity",
+x = "Quantity",
+y = "Count") +
+theme_minimal()
+print(Quantity_Histogram)
+```
+
+### Histogram of Quantity Scaling
+
+```{r}
+Quantity_LN_Histogram<-ggplot(Section4DataNew, aes(x = Quantity_LN)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of LN(Quantity)",
+x = "LN(Quantity)",
+y = "Count") +
+theme_minimal()
+print(Quantity_LN_Histogram)
+```
+
+### Histogram of Quantity ZScale
+
+```{r}
+Quantity_ZScale_Histogram<-ggplot(Section4DataNew,
+aes(x = Quantity_ZScale)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of ZScale(Quantity)",
+x = "ZScale(Quantity)",
+y = "Count") +
+theme_minimal()
+print(Quantity_ZScale_Histogram)
+```
+
+## Sold Quantity
+
+####Statistical Summary
+
+```{r}
+Sold_Quantity_Summary <- summary(Section4DataNew$Sold_Quantity)
+print(Sold_Quantity_Summary)
+```
+
+### Natural Logarithm for Sold Quantity
+
+```{r}
+Section4DataNew$Sold_Quantity_LN <- log(Section4DataNew$Sold_Quantity)
+```
+
+### ZScore Scale for Sold Quantity
+
+```{r}
+Section4DataNew$Sold_Quantity_ZScale<- scale(Section4DataNew$Sold_Quantity)
+```
+
+### Histogram
+
+```{r}
+Sold_Quantity_Histogram<-ggplot(Section4DataNew, aes(x = Sold_Quantity)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of Sold Quantity",
+x = "Sold Quantity",
+y = "Count") +
+theme_minimal()
+print(Sold_Quantity_Histogram)
+```
+
+### Histogram of Sold Quantity Scaling
+
+```{r}
+Sold_Quantity_LN_Histogram<-ggplot(Section4DataNew, aes(x = Sold_Quantity_LN)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of LN(Sold Quantity)",
+x = "LN(Sold Quantity)",
+y = "Count") +
+theme_minimal()
+print(Sold_Quantity_LN_Histogram)
+```
+
+### Histogram of Sold Quantity ZScale
+
+```{r}
+Sold_Quantity_ZScale_Histogram<-ggplot(Section4DataNew, aes(x = Sold_Quantity_ZScale)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of ZScale(Sold Quantity)",
+x = "ZScale(Sold Quantity)",
+y = "Count") +
+theme_minimal()
+print(Sold_Quantity_ZScale_Histogram)
+```
+
+## Lost Sales Quantity
+
+####Statistical Summary
+
+```{r}
+Lost_sales_quantity_Summary <- summary(Section4DataNew$Lost_sales_quantity)
+print(Lost_sales_quantity_Summary)
+```
+
+### Natural Logarithm for Lost Sales Quantity
+
+```{r}
+Section4DataNew$Lost_sales_quantity_LN <- log(Section4DataNew$Lost_sales_quantity)
+```
+
+### ZScore Scale for Lost Sales Quantity
+
+```{r}
+Section4DataNew$Lost_sales_quantity_ZScale<- scale(Section4DataNew$Lost_sales_quantity)
+```
+
+### Histogram
+
+```{r}
+Lost_sales_quantity_Histogram<-ggplot(Section4DataNew, aes(x = Lost_sales_quantity)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of Lost Sales Quantity",
+x = "Lost Sales Quantity",
+y = "Count") +
+theme_minimal()
+print(Lost_sales_quantity_Histogram)
+```
+
+### Histogram of Lost Sales Quantity Scaling
+
+```{r}
+Lost_sales_quantity_LN_Histogram<-ggplot(Section4DataNew, aes(x = Lost_sales_quantity_LN)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of LN(Lost Sales Quantity)",
+x = "LN(Lost Sales Quantity)",
+y = "Count") +
+theme_minimal()
+print(Lost_sales_quantity_LN_Histogram)
+```
+
+### Histogram of Lost Sales Quantity ZScale
+
+```{r}
+Lost_sales_quantity_ZScale_Histogram<-ggplot(Section4DataNew, aes(x = Lost_sales_quantity_ZScale)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of ZScale(Lost Sales Quantity)",
+x = "ZScale(Lost Sales Quantity)",
+y = "Count") +
+theme_minimal()
+print(Lost_sales_quantity_ZScale_Histogram)
+```
+
+## Delta Price
+
+####Statistical Summary
+
+```{r}
+Delta_Summary <- summary(Section4DataNew$Delta)
+print(Delta_Summary)
+```
+
+### Natural Logarithm for Delta
+
+```{r}
+Section4DataNew$Delta_LN <- log(Section4DataNew$Delta)
+```
+
+### ZScore Scale for Delta
+
+```{r}
+Section4DataNew$Delta_ZScale<- scale(Section4DataNew$Delta)
+```
+
+### Histogram
+
+```{r}
+Delta_Histogram<-ggplot(Section4DataNew, aes(x = Delta)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of Delta",
+x = "Delta",
+y = "Count") +
+theme_minimal()
+print(Delta_Histogram)
+```
+
+### Histogram of Delta Scaling
+
+```{r}
+Delta_LN_Histogram<-ggplot(Section4DataNew, aes(x = Delta_LN)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of LN(Delta)",
+x = "LN(Delta)",
+y = "Count") +
+theme_minimal()
+print(Delta_LN_Histogram)
+```
+
+### Histogram of Delta ZScale
+
+```{r}
+Delta_ZScale_Histogram<-ggplot(Section4DataNew, aes(x = Delta_ZScale)) +
+geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+labs(title = "Histogram of ZScale(Delta)",
+x = "ZScale(Delta)",
+y = "Count") +
+theme_minimal()
+print(Delta_ZScale_Histogram)
+```
+
+### For each categorical Variable perform these analyses
+
+## Products
+
+### Histogram of Products
+
+```{r}
+Product_Histogram <- ggplot(Section4DataNew, aes(x = Products)) +
+geom_bar(fill = "#1b9e77", color = "black", width = 0.7) +
+labs(title = "Histogram of Products",
+x = "Product Type",
+y = "Count") +
+theme_minimal(base_size = 14)
+print(Product_Histogram)
+```
+
+### Subsetting by Products
+
+```{r}
+hats <- Section4DataNew %>% filter(Products == "hat")
+sunglasses <- Section4DataNew %>% filter(Products == "sunglasses")
+jackets <- Section4DataNew %>% filter(Products == "jacket")
+```
+
+## Sale
+
+### Histogram of Sale
+
+```{r}
+Sale_Histogram <- ggplot(Section4DataNew, aes(x = Sale)) +
+geom_bar(fill = "#1b9e77", color = "black", width = 0.7) +
+labs(title = "Histogram of Sale",
+x = "Sale",
+y = "Count") +
+theme_minimal(base_size = 14)
+print(Sale_Histogram)
+```
+
+## Bivariate Analyses
+
+### Chi Square Test of Independence for Products and Sale
+
+### Interpretation guide:
+
+If p \< 0.05, there is evidence of an association between Product type and Sale outcome. If p \> 0.05, there is no evidence of a relationship — meaning sale rates do not differ by product type.
+
+```{r}
+tab <- table(Section4DataNew$Products, Section4DataNew$Sale)
+tab
+```
+
+```{r}
+# 3. Run Chi-Squared Test of Independence
+chisq.test(tab)
+```
+
+### Logistic Regression for Delta and sale
+
+```{r}
+# Convert Sale to a binary factor (1 = yes, 0 = no)
+df <- Section4DataNew %>%
+mutate(Sale_bin = ifelse(Sale == "yes", 1, 0))
+# Fit logistic regression model
+model <- glm(Sale_bin ~ Delta, data = df, family = binomial)
+```
+
+```{r}
+# View model summary
+summary(model)
+```
+
+```{r}
+# Create predicted probabilities across Delta range
+Section4DataNew <- Section4DataNew %>%
+mutate(Sale_bin = ifelse(Sale == "yes", 1, 0))
+newdata <- data.frame(Delta = seq(min(Section4DataNew$Delta),
+max(Section4DataNew$Delta), length.out = 200))
+newdata$pred <- predict(model, newdata, type = "response")
+# Plot
+Logistic_Regression_Sale_Delta <- ggplot(Section4DataNew,
+aes(x = Delta, y = Sale_bin)) +
+geom_jitter(height = 0.05, width = 0.1, alpha = 0.4, color = "steelblue") +
+geom_line(data = newdata, aes(x = Delta, y = pred),
+color = "darkred", linewidth = 1.2) +
+labs(title = "Logistic Regression: Probability of Sale vs Delta",
+x = "Delta",
+y = "Probability of Sale") +
+theme_minimal(base_size = 14)
+print(Logistic_Regression_Sale_Delta)
+```
+
+## Correlations for All Continuous Variables
+
+```{r}
+Section4DataNew %>%
+select(Offer_Price, Sales_Price, Quantity, Sold_Quantity, Lost_sales_quantity) %>%
+cor(use = "complete.obs")
+```
+
+## Covariance for all Continuous Values
+
+```{r}
+cov(Section4DataNew[, c("Offer_Price", "Sales_Price", "Quantity", "Sold_Quantity", "Lost_sales_quantity")],
+use = "complete.obs")
+```
+
+```{r}
+cov_mat <- cov(Section4DataNew[, c("Offer_Price", "Quantity", "Sales_Price", "Sold_Quantity", "Lost_sales_quantity")])
+cov_df <- melt(cov_mat)
+ggplot(cov_df, aes(Var1, Var2, fill = value)) + geom_tile() +
+scale_fill_gradient2(low = "#3498DB", high = "#E74C3C",
+mid = "white", midpoint = 0) +
+theme_minimal(base_size = 14) +
+labs(title = "Covariance Matrix Heatmap", fill = "Covariance")
+```
+
+## Regression of Offer_Price and Sales_Price
+
+```{r}
+Offer_v_Sales <- ggplot(Section4DataNew, aes(x = Offer_Price, y = Sales_Price)) +
+geom_point(color = "steelblue", alpha = 0.7) +
+geom_smooth(method = "lm", se = FALSE, color = "red", linewidth = 1) +
+labs(
+title = "Offer_v_Sales",
+x = "Offer",
+y = "Sales"
+) +
+theme_minimal()
+print(Offer_v_Sales)
+```
+
+```{r}
+model <- lm(Sales_Price ~ Offer_Price, data = Section4DataNew)
+summary(model)
+```
+
+```{r}
+print(model)
+```
+
+## Create BoxPlot for each Continuous and Interval Variable
+
+### Continuous Variables
+
+```{r}
+# Select the numeric variables
+num_df <- Section4DataNew %>%
+select(Offer_Price, Sales_Price, Quantity, Sold_Quantity, Lost_sales_quantity)
+# Convert to long format
+long_df <- num_df %>%
+pivot_longer(cols = everything(),
+names_to = "Variable",
+values_to = "Value")
+# Boxplot of all variables in one figure
+ggplot(long_df, aes(x = Variable, y = Value, fill = Variable)) +
+geom_boxplot(alpha = 0.7) +
+labs(title = "Boxplot of all Continuous and Interval Variable ",
+x = "Variable",
+y = "Value") +
+theme_minimal(base_size = 14) +
+theme(legend.position = "none")
+```
+
+### Interval Variable: Delta
+
+```{r}
+num_df <- Section4DataNew %>%
+select(Delta)
+long_df <- num_df %>%
+pivot_longer(cols = everything(),
+names_to = "Variable",
+values_to = "Value")
+ggplot(long_df, aes(x = Variable, y = Value, fill = Variable)) +
+geom_boxplot(alpha = 0.7) +
+labs(title = "Boxplot of Delta",
+x = "Variable",
+y = "Value") +
+theme_minimal(base_size = 14) +
+theme(legend.position = "none")
+```

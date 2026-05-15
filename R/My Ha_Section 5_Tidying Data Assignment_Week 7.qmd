@@ -1,0 +1,154 @@
+---
+title: "Section 5 Data Tidying Assignment"
+author: "My Ha"
+format: pdf
+editor: visual
+---
+
+## Session 5: Tidying Data Assignment
+
+Section: 02
+
+Name: My Ha
+
+## References
+
+To learn more about Quarto see <https://quarto.org>
+
+Course Text Link:
+
+[Chapter 5: R for Data Science](https://r4ds.hadley.nz/data-tidy.html)
+
+### Install Packages- comment out when complete
+
+```{r}
+#install.packages(c("rlang", "vctrs", "pillar", "tibble", "dplyr"))
+```
+
+## Install Libraries
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(readxl)
+library(ggplot2)
+library(reshape2)
+```
+
+## Set Working Directory and load file into that location
+
+```{r}
+getwd()
+```
+
+## Read in data for assignment
+
+```{r}
+Section5data <-read_xlsx("Section5_Data_Tidying_Assignment.xlsx")
+```
+
+## RECALL: What makes a dataset a “tidy” one
+
+### There are three interrelated rules that make a dataset tidy:
+
+1\. Each variable is a column; each column is a variable.
+
+2\. Each observation is a row; each row is an observation.
+
+3\. Each value is a cell; each cell is a single value
+
+### review the data in Section5data and notice the opportunities to tidy the data
+
+```{r}
+Section5_Pivot_longer <- Section5data |>
+pivot_longer(
+cols = c("Satisfied","Neither","Dissatisfied"), #columns to be pivotted
+names_to = "Survey_Result", # new column name
+values_to = "Total_Quantity" # values in new column,
+)
+```
+
+## Visualize the results
+
+```{r}
+ggplot(Section5_Pivot_longer, aes(x = Survey_Result, y = Total_Quantity)) +
+geom_boxplot(fill = "#E67E22", alpha = 0.7) +
+labs(
+title = "Total Quantity by Survey Result",
+x = "Survey Result",
+y = "Total Quantity"
+) +
+theme_minimal(base_size = 14)
+```
+
+```{r}
+Satisfied <- Section5_Pivot_longer %>% filter(Survey_Result == "Satisfied")
+Neither <- Section5_Pivot_longer %>% filter(Survey_Result == "Neither")
+Dissatisfied <- Section5_Pivot_longer %>% filter(Survey_Result == "Dissatisfied")
+```
+
+```{r}
+ggplot(Satisfied, aes(x = OrderDate, y = Total_Quantity)) +
+geom_line(color = "#2C3E50", linewidth = 1) +
+geom_point(color = "#2980B9", size = 2) +
+labs(
+title = "Total Quantity Over Time",
+x = "Order Date",
+y = "Total Quantity"
+) +
+theme_minimal(base_size = 14)
+```
+
+```{r}
+ggplot(Satisfied, aes(x = Total_Quantity)) +
+geom_histogram(aes(y = after_stat(density)),
+bins = 10, fill = "#3498DB", alpha = 0.6) +
+geom_density(color = "#2C3E50", linewidth = 1) +
+labs(
+title = "Distribution of Satisfied",
+x = "Total Quantity",
+y = "Density"
+) +
+theme_minimal(base_size = 14)
+```
+
+```{r}
+ggplot(Neither, aes(x = Total_Quantity)) +
+geom_histogram(aes(y = after_stat(density)),
+bins = 10, fill = "#3498DB", alpha = 0.6) +
+geom_density(color = "#2C3E50", linewidth = 1) +
+labs(
+title = "Distribution of Neither",
+x = "Total Quantity",
+y = "Density"
+) +
+theme_minimal(base_size = 14)
+```
+
+```{r}
+ggplot(Dissatisfied, aes(x = Total_Quantity)) +
+geom_histogram(aes(y = after_stat(density)),
+bins = 10, fill = "#3498DB", alpha = 0.6) +
+geom_density(color = "#2C3E50", linewidth = 1) +
+labs(
+title = "Distribution of Dissatisfied",
+x = "Total Quantity",
+y = "Density"
+) +
+theme_minimal(base_size = 14)
+```
+
+```{r}
+ggplot(Section5_Pivot_longer, aes(x = Total_Quantity, fill = Survey_Result)) +
+geom_density(alpha = 0.5, color = "black") +
+facet_wrap(~ Survey_Result, ncol = 2) +
+labs(
+title = "Density of Total Quantity by Survey Result",
+x = "Total Quantity",
+y = "Density"
+) +
+theme_minimal(base_size = 14) +
+theme(legend.position = "none")
+```

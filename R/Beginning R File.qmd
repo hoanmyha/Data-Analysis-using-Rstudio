@@ -1,0 +1,225 @@
+---
+title: "Almost Real Investment Analysis Project"
+author: "My HaHa"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+editor: visual
+---
+
+# Introduction
+
+In this project, you will analyze four investment tools over the past ten years:
+
+-   One **stock**
+-   One **bond fund**
+-   One **aggressive mutual fund or ETF**
+-   One **index fund**
+-   A **benchmark index** (S&P 500)
+
+Goals:
+
+1.  Perform an **Exploratory Data Analysis (EDA)**\
+2.  Standardize returns relative to the benchmark\
+3.  Compute **beta**, **volatility**, and **risk–return metrics**\
+4.  Explore **portfolio blends**\
+5.  Recommend an investment mix
+
+Install Packages
+
+```{r}
+#install.packages("tidyquant")
+```
+
+Install Libraries
+
+```{r}
+library(tidyverse)
+library(tidyquant)
+library(lubridate)
+library(ggrepel)
+
+```
+
+Import Your Data
+
+```{r}
+data <- read_csv("invest_data_student_10.csv")  
+glimpse(data)
+
+```
+
+# Exploratory Data Analysis
+
+Time Series of Returns
+
+```{r}
+data %>%
+  ggplot(aes(date, ret, color = symbol)) +
+  geom_line(alpha = 0.7) +
+  labs(title = "Monthly Log Returns", y = "Return", color = "Instrument")
+
+```
+
+Distribution of Returns
+
+```{r}
+data %>%
+  ggplot(aes(ret, fill = symbol)) +
+  geom_histogram(alpha = 0.6, bins = 30, position = "identity") +
+  labs(title = "Distribution of Monthly Returns")
+
+```
+
+Summary Statistics
+
+```{r}
+summary_stats <- data %>%
+  group_by(symbol) %>%
+  summarise(
+    mean_ret = mean(ret),
+    sd_ret   = sd(ret),
+    min_ret  = min(ret),
+    max_ret  = max(ret),
+    n        = n()
+  )
+summary_stats
+
+```
+
+# Standardization to Benchmark
+
+Excess Returns
+
+```{r}
+excess_stats <- data %>%
+  group_by(symbol) %>%
+  summarise(
+    mean_excess = mean(excess_ret),
+    sd_excess   = sd(excess_ret)
+  )
+excess_stats
+
+```
+
+# Beta and Risk Metrics
+
+```{r}
+beta_table <- data %>%
+  group_by(symbol) %>%
+  do({
+    fit <- lm(ret ~ benchmark_ret, data = .)
+    tibble(
+      beta = coef(fit)[["benchmark_ret"]],
+      alpha = coef(fit)[["(Intercept)"]],
+      r2   = summary(fit)$r.squared
+    )
+  })
+beta_table
+
+```
+
+Risk-Return Plot
+
+```{r}
+risk_return <- summary_stats %>%
+  left_join(beta_table, by = "symbol")
+
+risk_return %>%
+  ggplot(aes(sd_ret, mean_ret, label = symbol)) +
+  geom_point(size = 3) +
+  ggrepel::geom_text_repel() +
+  labs(title = "Risk–Return Tradeoff",
+       x = "Volatility (SD)",
+       y = "Average Monthly Return")
+
+```
+
+# Portfolio Blends
+
+Prepare Data
+
+```{r}
+role_map <- tibble(
+  symbol = unique(data$symbol),
+  role = c("stock", "bond", "aggressive", "index")
+)
+
+returns_wide <- data %>%
+  select(date, symbol, ret) %>%
+  left_join(role_map, by = "symbol") %>%
+  select(-symbol) %>%                                    # drop symbol BEFORE pivot
+  pivot_wider(names_from = role, values_from = ret)      # now pivot cleanly
+
+returns_wide
+```
+
+Weight Grid
+
+```{r}
+weights_grid <- crossing(
+  w_stock      = seq(0, 1, 0.1),
+  w_bond       = seq(0, 1, 0.1),
+  w_aggressive = seq(0, 1, 0.1),
+  w_index      = seq(0, 1, 0.1)
+) %>%
+  filter(abs(w_stock + w_bond + w_aggressive + w_index - 1) < 1e-6)
+weights_grid
+
+```
+
+Portfolio Returns
+
+```{r}
+portfolio_results <- weights_grid %>%
+  crossing(returns_wide %>% select(-date)) %>%   # drop date 
+  mutate(
+    port_ret = w_stock * stock +
+               w_bond * bond +
+               w_aggressive * aggressive +
+               w_index * index
+  ) %>%
+  group_by(w_stock, w_bond, w_aggressive, w_index) %>%
+  summarise(
+    mean_port_ret = mean(port_ret),
+    sd_port_ret   = sd(port_ret),
+    sharpe_like   = mean_port_ret / sd_port_ret,
+    .groups = "drop"
+  )
+portfolio_results
+```
+
+\
+
+Best Portfolio
+
+```{r}
+best_portfolio <- portfolio_results %>%
+  arrange(desc(sharpe_like)) %>%
+  slice(1)
+best_portfolio
+
+```
+
+# Conclusion
+
+-   Which instrument performed best?
+
+    QQQ performed best. Based on the summary statistics table, QQQ had the highest mean monthly return at 1.58% per month, notably ahead of VTI (1.13%), KO (0.69%), and BND (0.16%). We can also see this visually in the Time Series plot, the QQQ line swings higher than the others over time, and in the Distribution histogram, QQQ's bars are shifted further to the right, meaning more of its returns land in positive territory.
+
+-   Which had the highest risk?
+
+    QQQ had the highest risk among the equity instruments, but it's close with KO. From the same Summary Statistics table, the sd_ret column (standard deviation = how wildly returns bounce around) shows that. We can also see this clearly in the Risk-Return Tradeoff plot, QQQ sits furthest to the right on the X-axis (highest volatility). Also from the Beta table, QQQ has a beta of 1.12, meaning when the market drops 10%, QQQ tends to drop about 11.2%. BND's beta is only 0.14, which barely reacts to market swings at all, which is why it's plotted far to the left in that same chart. The Distribution histogram also shows this when QQQ's bars are spread widest (tall spikes on both the loss and gain sides), while BND's bars are tightly clustered near zero.
+
+-   What portfolio mix did you recommend?
+
+    I recommend: 40% QQQ, 40% VTI, 10% KO, and 10% BND. The model's best portfolio came out to 20% KO (stock) and 80% QQQ (aggressive), with 0% in BND and VTI. It had a mean monthly return of 1.40% and the highest Sharpe-like ratio of 0.302, meaning it gave the best return per unit of risk out of all 286 combinations tested. That said, I would personally adjust this slightly: putting all 80% into QQQ with nothing in BND creates real concentration risk. My personal recommendation would be 40% QQQ, 40% VTI, 10% KO, and 10% BND to balance the strong returns QQQ showed with some stability from VTI and BND.
+
+-   Would you invest this way personally?
+
+    Honestly, yes I would. Looking at everything the data showed me, QQQ and VTI together form a really strong growth core. QQQ beat the market, VTI tracks it closely, and having both gives me good exposure without putting everything into one basket. The small positions in KO and BND are there for stability, which matters because if you look at the Time Series chart, there are clear moments around 2020 where the equity instruments all dropped sharply at the same time. Having BND in there during those months would have softened the hit. The one thing I would personally watch out for is that QQQ and VTI both have heavy technology exposure, so in a bad market they tend to fall together rather than offsetting each other. If I were closer to needing this money, I would probably shift a bit more into BND. But as a long-term growth portfolio, the numbers in this dataset back up this mix and I would feel confident investing this way.

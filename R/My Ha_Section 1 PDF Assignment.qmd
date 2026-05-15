@@ -1,0 +1,127 @@
+---
+title: "Section 1 Assignment PDF"
+author: "Instructor Michael Downey"
+format: pdf
+editor: visual
+---
+
+# Section 1: Import and Communicate Exercise
+
+Enter your information below:
+
+Data 332 Section \# **02**
+
+Student name: **My Ha**
+
+**References**
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+Visual Editing in RStudio – Quarto: <https://quarto.org/docs/visual-editor/>
+
+Datacamp Quarto Cheat Sheet: <https://media.datacamp.com/legacy/image/upload/v1676540721/Marketing/Blog/Quarto_Cheat_Sheet.pdf>
+
+# Set your working Directory and load files
+
+Create a new directory using your computer’s file manager.
+
+In RStudio: From the top Ribbon, pick Session: set working Directory, Open the directory with the files you created above
+
+Use getwd() in the Console to verify your working directory is now set.
+
+Section 1 has its focus in the Import and Communicate Phases of this methodology. Bringing data in from the World and being able to communicate the results of Data Analytics completed within R are critical steps to beginning an effective knowledge in R.\
+
+![Figure 1: Courtesy: R4DS - Hadley et al.](whole-game-image.png)
+
+This image is stored in the Students Location and can be inserted in this docment as above. It is center justified, the size has been changed, and the acknowledgement inserted.
+
+# Packages and Libraries
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(readxl)
+library(writexl)
+```
+
+# Download Data332_Section 1 Assignment.xlsx from the Student Location at this link:
+
+<https://drive.google.com/drive/folders/1g60OSGX.JnF3Q97MBD9BT1M4.JmPLfJ6rd>\
+Ensuring to copy it to the working directory you have created for this assignment.\
+Read the .xlsx and assign it to a variable in the .qmd you create for this assignment as below:
+
+```{r}
+# read xlsx and assign to a variable
+xlsx_file<-read_xlsx("Data332_Section 1 Assignment.xlsx")
+#
+# Print the File to confirm
+print (read_xlsx("Data332_Section 1 Assignment.xlsx"))
+```
+
+```{r}
+#View the File
+xlsx_file
+```
+
+```{r}
+# The top row are the column names and the data types for each column
+# shown below with "< >" designations
+
+
+#Check Global environment for the file and verify contents
+```
+
+# List the Data Types in this file
+
+```{r}
+str(xlsx_file)
+```
+
+The file above is readable but here is an easier way to read the data types.
+
+Let's stored the datatypes to document their types.
+
+```{r}
+library(tibble)
+library(purrr)
+
+Excel_datatypes <- tibble( column = names(xlsx_file),
+type = map_chr(xlsx_file,~
+paste(class(.x), collapse = ", ")))
+print (Excel_datatypes)
+```
+
+This format is much easier to understand and will prove as a good reference ass your analysis progresses.
+
+# Download Data332_Section 1 Assignment(CSV).csv from the Student Location at this link:
+
+<https://drive.google.com/drive/folders/1g6OOSGX.JnF3Q97MBD9BT1M4.JmPLfJ6rd> Ensuring to copy it to the working directory you have created for this assignment. Read the .CSV and assign it to a variable in the .qmd you create for this assignment as below:
+
+```{r}
+csv_file<-read_csv("Data332_Section 1 Assignment(CSV).csv")
+```
+
+```{r}
+print (csv_file)
+```
+
+```{r}
+CSV_datatypes <- tibble( column = names (csv_file),
+type = map_chr(csv_file, ~
+paste(class(.x), collapse = ", ")) )
+print (CSV_datatypes)
+```
+
+Note: Which Datatype was lost in the CSV file....???
+
+# Moodle Submission
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code.
+
+# Submit for the assignment:
+
+1\) the .qmd file used to create
+
+2\) the render .pdf

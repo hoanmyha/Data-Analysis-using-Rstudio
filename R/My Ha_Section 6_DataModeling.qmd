@@ -1,0 +1,328 @@
+---
+title: "Section 6: Data Modeling - Time Series Forecasting"
+author: "My Ha"
+format: html
+---
+
+## Time Series Forecasting in R
+
+Section: 02
+
+Name: My Ha
+
+References
+
+To learn more about Quarto see <https://quarto.org>
+
+### Install Packages- comment out when complete
+
+```{r}
+#install.packages("Rtools")
+#install.packages(c("tidyverse","readxl", "ggplot2"))
+#install.packages(c("rlang", "vctrs", "pillar"))
+#install.packages(c("tibble", "dplyr", "GGally","plotly","tinytex"))
+#install.packages("plotly")
+#install.packages("forecast")
+```
+
+### Install Libraries
+
+```{r}
+suppressWarnings(library(tidyverse, quietly = T))
+```
+
+```{r}
+suppressWarnings(library(readxl, quietly = T))
+suppressWarnings(library(ggplot2, quietly = T))
+suppressWarnings(library(reshape2, quietly = T))
+```
+
+```{r}
+suppressWarnings(library(GGally, quietly = T))
+suppressWarnings(library(plotly, quietly = T))
+```
+
+```{r}
+suppressWarnings(library(cluster, quietly = T))
+suppressWarnings(library(forecast, quietly = T))
+```
+
+### Set Working Directory and load file into that location
+
+```{r}
+getwd()
+```
+
+## Read the data from an excel Spreadsheet
+
+```{r}
+Revenue_data <- read_excel("data.xlsx")
+Revenue_data <- Revenue_data %>%
+  mutate(
+    Date = as.Date(Date, origin = "1899-12-30")
+  )
+```
+
+### Exploratory Data Analysis of All Variables
+
+```{r}
+summary(Revenue_data)
+```
+
+### Distributions
+
+```{r}
+Revenue_data %>%
+  select(Sales_Volume, Normal_distributed_growth, Random_growth) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  facet_wrap(~ name, scales = "free") +
+  theme_minimal()
+```
+
+<u>Question #1: Which Distribution appears to be skewed right?</u>
+
+**Answer:** Random_growth is the most right-skewed distribution. The histogram shows most values concentrated on the lower end, with a long tail stretching toward higher values. Additionally, its maximum (about 21.9M) is almost twice its median (around 10.9M), which strongly indicates right skew. In contrast, Sales_Volume and Normal_distributed_growth appear much more symmetric.
+
+```{r}
+df_long <- Revenue_data %>%
+  pivot_longer(cols = c(Sales_Volume, Normal_distributed_growth, Random_growth),
+               names_to = "variable", values_to = "value")
+
+ggplot(df_long, aes(x = value, fill = variable)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_viridis_d() +
+  labs(
+    title = "Overlaid Density Plots",
+    x = "Value",
+    y = "Density",
+    fill = "Variable"
+  ) +
+  theme_minimal()
+```
+
+### Pairwise Relationships
+
+```{r}
+Revenue_data %>%
+  select(Sales_Volume, Normal_distributed_growth, Random_growth) %>%
+  ggpairs(
+    lower = list(continuous = wrap("smooth", method = "lm", se = FALSE)),
+    diag  = list(continuous = wrap("densityDiag")),
+    upper = list(continuous = wrap("cor", size = 5)),
+    progress = FALSE
+  )
+```
+
+<u>Question #2: Which pair of Variables has the strongest looking correlation?</u>
+
+**Answer:** Normal_distributed_growth and Random_growth show the strongest correlation, with a coefficient of 0.743, as seen in the correlation matrix. In comparison, Sales_Volume has much weaker relationships with the other variables, likely because it follows a seasonal cycle instead of a consistent growth trend.
+
+### Correlation Matrix
+
+```{r}
+correlation <- cor(Revenue_data %>% select(Normal_distributed_growth, Random_growth))
+correlation
+```
+
+### Outlier Detection
+
+```{r}
+Revenue_data %>%
+  select(Sales_Volume, Normal_distributed_growth, Random_growth) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(x = name, y = value)) +
+  geom_boxplot() +
+  theme_minimal() +
+  coord_flip()
+```
+
+```{r}
+# Convert to long format for ggplot
+df_long <- Revenue_data %>%
+  pivot_longer(
+    cols = c(Sales_Volume, Normal_distributed_growth, Random_growth),
+    names_to = "Series",
+    values_to = "Value"
+  )
+
+# Plot
+ggplot(df_long, aes(Date, Value)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  facet_wrap(~ Series, scales = "free_y", ncol = 1) +
+  labs(
+    title = "Time Series Faceted by Series",
+    x = "Date",
+    y = "Value"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+<u>Question #3: Which Variable appears most difficult to forecast?</u>
+
+**Answer:** Random_growth is the hardest variable to forecast. Its time series shows sharp, irregular fluctuations with no consistent pattern, meaning there’s neither a clear trend nor seasonality to model. In contrast, Sales_Volume follows a predictable seasonal cycle, and Normal_distributed_growth exhibits a steady upward trend, both of which are much easier for ARIMA to capture.
+
+#### Time Series Forecasting
+
+#####Forecasting Sales Volume
+
+#####Plot the series
+
+```{r}
+ggplot(Revenue_data, aes(Date, Sales_Volume)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Sales_Volume Over Time") +
+  theme_minimal()
+```
+
+##### Create the Time series
+
+```{r}
+ts_sales <- ts(Revenue_data$Sales_Volume, frequency = 12,
+               start = c(year(min(Revenue_data$Date)), month(min(Revenue_data$Date))))
+
+decomp <- stl(ts_sales, s.window = "periodic")
+autoplot(decomp)
+```
+
+<u>Question #4: How was the Frequency of the Time Series chosen?</u>
+
+**Answer:** The frequency was set to 12 because the data is recorded monthly, and there are 12 months in a year. This means a full seasonal cycle occurs every 12 observations. By setting frequency = 12, the model can detect patterns that repeat annually, such as consistent increases or decreases in certain months. For comparison, quarterly data would use a frequency of 4, while weekly data would use 52.
+
+#### Fit ARIMA Model
+
+```{r}
+fit_arima <- auto.arima(ts_sales)
+summary(fit_arima)
+```
+
+#### Forecast from the ARIMA fitting
+
+```{r}
+fc_arima <- forecast(fit_arima, h = 12)
+
+autoplot(fc_arima)
+```
+
+#### Check accuracy of forecast
+
+```{r}
+accuracy(fc_arima)
+```
+
+```{r}
+checkresiduals(fit_arima)
+```
+
+#### Visualize the forecast
+
+```{r}
+autoplot(fc_arima) +
+  labs(title = "12-Month Forecast (ARIMA)")
+```
+
+#### Forecast for Normal_distributed_Growth
+
+```{r}
+ggplot(Revenue_data, aes(Date, Normal_distributed_growth)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Normal_distributed_growth Over Time") +
+  theme_minimal()
+```
+
+```{r}
+ts_sales <- ts(Revenue_data$Normal_distributed_growth, frequency = 12,
+               start = c(year(min(Revenue_data$Date)), month(min(Revenue_data$Date))))
+
+decomp <- stl(ts_sales, s.window = "periodic")
+autoplot(decomp)
+```
+
+```{r}
+fit_arima <- auto.arima(ts_sales)
+summary(fit_arima)
+```
+
+```{r}
+fc_arima <- forecast(fit_arima, h = 12)
+
+autoplot(fc_arima)
+```
+
+<u>Question #5: Why do the forecasted error bands widen as the forecast moves farther into the future?</u>
+
+**Answer:** The forecast error bands widen over time because uncertainty increases with each step ahead. Since future values are predicted using earlier forecasts rather than actual observations, any small errors carry forward and grow over time. As a result, the model becomes less certain the farther it projects, and the wider bands reflect this decreasing confidence.
+
+```{r}
+accuracy(fc_arima)
+```
+
+```{r}
+checkresiduals(fit_arima)
+```
+
+```{r}
+autoplot(fc_arima) +
+  labs(title = "12-Month Normal_distributed_growth Forecast (ARIMA)")
+```
+
+#### Forecasting Random_growth
+
+<u>Question #6: Perform the steps below for Time Series Forecast on Random_growth. Does the time series analysis perform well on the Random_growth?</u>
+
+**Answer:** No, the time series model does not perform well on Random_growth. Since the data lacks a clear trend or seasonal pattern and is dominated by unpredictable fluctuations, the ARIMA model has little meaningful structure to capture. As a result, the forecasts are imprecise, with wide confidence intervals and high error measures (such as MAPE), indicating that the model mainly estimates an average rather than accurately tracking the series’ behavior.
+
+##### Plot the series
+
+```{r}
+ggplot(Revenue_data, aes(Date, Random_growth)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Random_growth Over Time") +
+  theme_minimal()
+```
+
+#### Create the Time series
+
+```{r}
+ts_sales <- ts(Revenue_data$Random_growth, frequency = 12,
+               start = c(year(min(Revenue_data$Date)), month(min(Revenue_data$Date))))
+
+decomp <- stl(ts_sales, s.window = "periodic")
+autoplot(decomp)
+```
+
+#### Fit ARIMA Model
+
+```{r}
+fit_arima <- auto.arima(ts_sales)
+summary(fit_arima)
+```
+
+#### Forecast from the ARIMA fitting
+
+```{r}
+fc_arima <- forecast(fit_arima, h = 12)
+autoplot(fc_arima)
+```
+
+#### Check accuracy of forecast
+
+```{r}
+accuracy(fc_arima)
+```
+
+```{r}
+checkresiduals(fit_arima)
+```
+
+#### Visualize the forecast
+
+```{r}
+autoplot(fc_arima) +
+  labs(title = "12-Month Random_growth Forecast (ARIMA)")
+```
+
+<u>Question #7: Why are the residuals skewed more to the right than the two previous models?</u>
+
+**Answer:** The residuals are right-skewed because Random_growth includes occasional large upward spikes that the ARIMA model fails to anticipate. When these spikes occur, the model significantly underpredicts the actual values, leading to large positive residuals. These extreme positive errors shift the residual distribution to the right. In contrast, Sales_Volume and Normal_distributed_growth follow more stable and symmetric patterns, resulting in residuals that are more evenly centered around zero.
